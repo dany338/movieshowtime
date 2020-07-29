@@ -1,5 +1,4 @@
 <?php
-
 namespace api\modules\v1\controllers;
 
 use Yii;
@@ -19,7 +18,9 @@ use dektrium\user\models\Token;
 use yii\filters\VerbFilter;
 use yii\filters\AccessControl;
 use yii\db\ActiveQuery;
-use backend\models\Configuration;
+use backend\models\Movie;
+use backend\models\Subscription;
+use api\modules\v1\models\curl;
 
 class UsersController extends ActiveController
 {
@@ -99,14 +100,23 @@ class UsersController extends ActiveController
   }
 
   public function actionLogin() {
-    $requests  = \Yii::$app->request->post();
-    $login     = isset($requests['login']) ? (!empty($requests['login']) ? trim($requests['login']) : null ) : null; // username or login
-    $password  = isset($requests['password']) ? (!empty($requests['password']) ? trim($requests['password']) : null ) : null;
+    if(Yii::$app->request->isPost) {
+      $requests  = \Yii::$app->request->post();
+      if(!isset($requests['login'])) {
+        throw new \yii\web\HttpException(412, 'Field login is not defined!');
+      }
 
-    if( is_null($login) || is_null($password) ) {
-      throw new \yii\web\HttpException(412);
-    }
-    else {
+      if(!isset($requests['password'])) {
+        throw new \yii\web\HttpException(412, 'Field password is not defined!');
+      }
+
+      $login    = !empty($requests['login']) ? trim($requests['login']) : null;
+      $password = !empty($requests['password']) ? trim($requests['password']) : null;
+
+      if(is_null($login) || is_null($password)) {
+        throw new \yii\web\HttpException(412, 'Fields they are empty!');
+      }
+
       if(is_numeric($login)){
         $user = User::find()->where(['mobile' => $login])->one();
       }
@@ -117,31 +127,12 @@ class UsersController extends ActiveController
         $user = User::find()->where(['username' => $login])->one();
       }
 
-      if( $user === null ) {
-        //throw new \yii\web\NotFoundHttpException;
-        $response = \Yii::$app->response;
-        \Yii::$app->response->statusCode = 200;
-        $response->format = \yii\web\Response::FORMAT_JSON;
-        $response->data   = [
-          'name'     => 'error',
-          'message'  => $response->isSuccessful,
-          'code'     => 0,
-          'status'   => \Yii::$app->response->statusCode,
-          'data'     => [
-            'message'  => 'contraseña incorrecta'
-          ]
-        ];
-      } else {
+      if($user) {
         $hash = $user->password_hash;
         if(!\Yii::$app->security->validatePassword($password, $hash)) {
-          throw new \yii\web\NotFoundHttpException;
+          throw new \yii\web\NotFoundHttpException('Password incorrect!');
         }
 
-        //$user->auth_key = \Yii::$app->security->generateRandomString();
-        //$user->save();
-
-        $configuration = Configuration::find()->where(['idType'=>1])->one();
-        $hostapi       = $configuration->description;
         $roles = \Yii::$app->authManager->getRolesByUser($user->id);
         reset($roles);
         $role = current($roles);
@@ -162,13 +153,16 @@ class UsersController extends ActiveController
             'username'            => $user->username,
             'email'               => $user->email,
             'fullname'            => $user->profile->name,
-            'picture'             => (!empty($user->profile->bio)) ? $user->profile->bio : 'https://www.cvexpress.club/mensajeros/backend/web/img/default_avatar_male.jpg',
+            'picture'             => (!empty($user->profile->bio)) ? $user->profile->bio : 'https://www.historiaclinicaduo.com/movieshowtime/backend/web/img/default_avatar_male.jpg',
             'accessToken'         => $user->auth_key, // en los otros servicios se manda el token asi: access-token=xxxx
             'type'                => $role->name, //$user->profile->idTipo0->name//
-            'hostapi'             => $hostapi
           ]
         ];
+      } else {
+        throw new \yii\web\NotFoundHttpException('Login incorrect!');
       }
+    } else {
+      throw new \yii\web\HttpException(405);
     }
   }
 
@@ -177,8 +171,24 @@ class UsersController extends ActiveController
     if(Yii::$app->request->isPost) {
       $requests    = \Yii::$app->request->post();
 
-      if(!isset($requests['fullname']) || !isset($requests['age']) || !isset($requests['email']) || !isset($requests['city']) || !isset($requests['school']) || !isset($requests['password']) || !isset($requests['type'])) {
-        throw new \yii\web\HttpException(412);
+      if(!isset($requests['age'])) {
+        throw new \yii\web\HttpException(412, 'Field age is not defined!');
+      }
+
+      if(!isset($requests['email'])) {
+        throw new \yii\web\HttpException(412, 'Field email is not defined!');
+      }
+
+      if(!isset($requests['mobile'])) {
+        throw new \yii\web\HttpException(412, 'Field mobile is not defined!');
+      }
+
+      if(!isset($requests['fullname'])) {
+        throw new \yii\web\HttpException(412, 'Field fullname is not defined!');
+      }
+
+      if(!isset($requests['location'])) {
+        throw new \yii\web\HttpException(412, 'Field location is not defined!');
       }
 
       $data      = [];
@@ -187,18 +197,9 @@ class UsersController extends ActiveController
       $name      = utf8_encode($requests['fullname']);
       $age       = $requests['age'];
       $email     = $requests['email'];
-      $city      = $requests['city'];
-      $school    = $requests['school'];
-      //$university= $requests['university'];
       $password  = $requests['password'];
-      $career    = $requests['career'];
-      $type      = $requests['type']; // mobile, web
-
-      if( $type == 'mobile' ) {
-        $rolname   = 'student';
-      } else if( $type == 'web' ) {
-        $rolname   = 'adviser';
-      }
+      $location  = $requests['location'];
+      $rolname   = 'subscriptor';
 
       $user = User::find()->where(['email' => $email])->one();
 
@@ -226,31 +227,26 @@ class UsersController extends ActiveController
           if( $assign === null )
             $manager->assign($manager->getItem($rolname),$user->id);
 
-          $profile                 = $user->profile;//$profile = new Profile();
+          $profile                 = $user->profile;
           $profile->user_id        = $user->id;
-          $profile->name           = $name;
+          $profile->name           = $naemailme;
           $profile->public_email   = $email;
           $profile->gravatar_email = $email;
           $profile->gravatar_id    = 'b95021aad667876effd8c427382edf4c';
-          $profile->location       = 'Bogota';
-          $profile->website        = 'https://cvexpress.club';
-          $profile->picture        = 'https://cvexpress.club/diamond/backend/web/img/default_avatar_male.jpg';
+          $profile->location       = $location;
+          $profile->website        = 'https://www.historiaclinicaduo.com/movieshowtime/backend/web/';
+          $profile->picture        = 'https://www.historiaclinicaduo.com/movieshowtime/backend/web/img/default_avatar_male.jpg';
           $profile->timezone       = 'America/Bogota';
-          $profile->idTipo         = 4; // student
-          $profile->school         = $school;
-          $profile->city           = $city;
           $profile->age            = $age;
-          $profile->career         = $career;
 
           if($profile->save(false)) {
             $data     = [
               'id'       => $user->id,
               'username' => $user->username,
               'email'    => $user->email,
+              'mobile'   => $user->mobile,
               'auth_key' => $user->auth_key,
               'picture'  => $profile->picture,
-              'school'   => $profile->school,
-              'city'     => $profile->city,
               'age'      => $profile->age
             ];
           }
@@ -259,7 +255,6 @@ class UsersController extends ActiveController
         \Yii::$app->response->statusCode = 200;
         $response->format = \yii\web\Response::FORMAT_JSON;
         $response->getHeaders()->set('Access-Control-Allow-Origin','*');
-        // Uno desde la web y otro desde la web.
         $response->data   = [
           'name'     => 'OK',
           'message'  => $response->isSuccessful,
@@ -276,7 +271,6 @@ class UsersController extends ActiveController
         \Yii::$app->response->statusCode = 200;
         $response->format = \yii\web\Response::FORMAT_JSON;
         $response->getHeaders()->set('Access-Control-Allow-Origin','*');
-        // Uno desde la web y otro desde la web.
         $response->data   = [
           'name'     => 'error',
           'message'  => 'email ya se encuentra registrado',
@@ -291,14 +285,13 @@ class UsersController extends ActiveController
     }
   }
 
-  public function actionForgotPassword()
-    {
+  public function actionForgotPassword() {
       if(Yii::$app->request->isPost) {
         \Yii::$app->response->format = \yii\web\Response::FORMAT_JSON; // Para Json types resquest
         $requests                    = \Yii::$app->request->post();
 
-        if(!isset($requests['email']) ) {
-          throw new \yii\web\HttpException(412);
+        if(!isset($requests['email'])) {
+          throw new \yii\web\HttpException(412, 'Field email is not defined!');
         }
 
         $email = $requests['email'];
@@ -316,7 +309,7 @@ class UsersController extends ActiveController
 
           if (!$token->save(false)) {
             $data     = [
-              'message' => 'Problemas para crear el token de recordar contraseña'
+              'message' => 'Trouble creating the remember password token'
             ];
             $response = \Yii::$app->response;
             \Yii::$app->response->statusCode = 204;
@@ -325,7 +318,7 @@ class UsersController extends ActiveController
             // Uno desde la web y otro desde la web.
             $response->data   = [
               'name'     => 'OK',
-              'message'  => 'Problemas para crear el token de recordar contrase���a',
+              'message'  => 'Trouble creating the remember password token',
               'code'     => 0,
               'status'   => \Yii::$app->response->statusCode,
               'data'     => $data
@@ -336,7 +329,7 @@ class UsersController extends ActiveController
           $user->mailer->sendRecoveryMessage($user, $token);
 
           $data     = [
-            'message' => 'Correo enviado satisfactoriamente',
+            'message' => 'Mail successfully sent',
             'url' => Html::encode($token->url)
           ];
 
@@ -347,20 +340,17 @@ class UsersController extends ActiveController
           // Uno desde la web y otro desde la web.
           $response->data   = [
             'name'     => 'OK',
-            'message'  => 'Correo enviado satisfactoriamente',
+            'message'  => 'Mail successfully sent',
             'code'     => 0,
             'status'   => \Yii::$app->response->statusCode,
             'data'     => $data
           ];
           return $data;
-
         } else {
           throw new \yii\web\NotFoundHttpException;
         }
-
       } else {
         throw new \yii\web\HttpException(405);
       }
-    }
-
+  }
 }
