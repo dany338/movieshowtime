@@ -158,7 +158,7 @@ class Moviebillboard extends \yii\db\ActiveRecord
 
     public static function getSql($movie = '')
     {
-      $condition  = (!empty($movie)) ? ' WHERE a.movie_id =:movie a.status = 1 and DATE_FORMAT(a.start_date, "%Y") =:year and DATE_FORMAT(a.start_date, "%m") =:month and a.movie_id = b.id and a.movietheater_id = c.id ' : '';
+      $condition  = (!empty($movie)) ? ' WHERE a.movie_id =:movie and a.movie_id = b.id and a.movietheater_id = c.id ' : '';
       $sql = ' SELECT a.id,
                       b.name as movie,
                       b.moviedb_image as image,

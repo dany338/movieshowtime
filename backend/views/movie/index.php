@@ -44,88 +44,88 @@ jQuery('#export-all-movies').on('click', function() {
 });
 
 jQuery('#modal-subscriptions').modalm({
-  onOpenStart: function(modal, trigger) {
+  onOpenStart: async function(modal, trigger) {
     jQuery('#modal-subscriptions').removeAttr("tabindex");
-    const movie = jQuery(modal).data('movie');
-    console.log('open start modal', movie);
     let html = htmlLoader();
     jQuery('#table-subscriptions').html('<tr><td colspan="3">' + html + '</td></tr>');
+    const movie = jQuery(trigger).data('movie');
+    await jQuery.ajax({
+      type: "POST",
+      url: url_subscriptions,
+      data: { movie: movie },
+      dataType: 'json',
+      success: function(data) {
+        var obj    = JSON.parse(JSON.stringify(data));
+        console.log(obj);
+        if(obj.exito == 1) {
+          let html = '';
+          for(var index = 0; index < obj.data.length; index++) {
+            const element = obj.data[index];
+            html += '<tr><td>' + element.user + '</td>';
+            html += '<td>' + element.created_at + '</td>';
+            html += '<td>' + element.notification + '</td></tr>';
+          }
+          jQuery('#table-subscriptions').html(html);
+        } else {
+          const html = '<tr><td colspan="3">No records</td></tr>';
+          jQuery('#table-subscriptions').html(html);
+        }
+      },
+      error: function (jqXHR, textStatus, errorThrown) {
+        toastr.error('Error loading the subscriptions !Please contact to administrator¡ ', 'ERROR', {closeButton: true, 'progressBar': true, preventDuplicates: true, positionClass: 'toast-bottom-right'});
+      }
+    });
   }
 });
 
 jQuery('#modal-moviebillboards').modalm({
-  onOpenStart: function(modal, trigger) {
+  onOpenStart: async function(modal, trigger) {
     jQuery('#modal-moviebillboards').removeAttr("tabindex");
     let html = htmlLoader();
     jQuery('#table-moviebillboards').html('<tr><td colspan="3">' + html + '</td></tr>');
+    const movie = jQuery(trigger).data('movie');
+    await jQuery.ajax({
+      type: "POST",
+      url: url_moviebillboards,
+      data: { movie: movie },
+      dataType: 'json',
+      success: function(data) {
+        var obj    = JSON.parse(JSON.stringify(data));
+        console.log(obj);
+        if(obj.exito == 1) {
+          let html = '';
+          for(var index = 0; index < obj.data.length; index++) {
+            const element = obj.data[index];
+            html += '<tr><td>' + element.start_date + '</td>';
+            html += '<td>' + element.end_date + '</td>';
+            html += '<td>' + element.statusLabel + '</td></tr>';
+          }
+          jQuery('#table-moviebillboards').html(html);
+        } else {
+          const html = '<tr><td colspan="3">No records</td></tr>';
+          jQuery('#table-moviebillboards').html(html);
+        }
+      },
+      error: function (jqXHR, textStatus, errorThrown) {
+        toastr.error('Error loading the moviebillboards !Please contact to administrator¡ ', 'ERROR', {closeButton: true, 'progressBar': true, preventDuplicates: true, positionClass: 'toast-bottom-right'});
+      }
+    });
   }
 });
 
-jQuery('.subscriptions').on('click', async function(e) {
-  e.preventDefault();
-  jQuery('.tooltipped').tooltip();
-  const movie = jQuery(this).data('movie');
-  await jQuery.ajax({
-    type: "POST",
-    url: url_subscriptions,
-    data: { movie: movie },
-    dataType: 'json',
-    success: function(data) {
-      var obj    = JSON.parse(JSON.stringify(data));
-      console.log(obj);
-      if(obj.exito == 1) {
-        let html = '';
-        for(var index = 0; index < obj.data.length; index++) {
-          const element = obj.data[index];
-          html += '<tr><td>' + element.user + '</td>';
-          html += '<td>' + element.created_at + '</td>';
-          html += '<td>' + element.notification + '</td></tr>';
-        }
-        jQuery('#table-subscriptions').html(html);
-      } else {
-        const html = '<tr><td colspan="3">No records</td></tr>';
-        jQuery('#table-subscriptions').html(html);
-      }
-    },
-    error: function (jqXHR, textStatus, errorThrown) {
-      toastr.error('Error loading the subscriptions !Please contact to administrator¡ ', 'ERROR', {closeButton: true, 'progressBar': true, preventDuplicates: true, positionClass: 'toast-bottom-right'});
-    }
-  });
-  e.stopPropagation();
-});
+// jQuery('.subscriptions').on('click', async function(e) {
+//   e.preventDefault();
+//   jQuery('.tooltipped').tooltip();
 
-jQuery('.moviebillboards').on('click', async function(e) {
-  e.preventDefault();
-  jQuery('.tooltipped').tooltip();
-  const movie = jQuery(this).data('movie');
-  await jQuery.ajax({
-    type: "POST",
-    url: url_moviebillboards,
-    data: { movie: movie },
-    dataType: 'json',
-    success: function(data) {
-      var obj    = JSON.parse(JSON.stringify(data));
-      console.log(obj);
-      if(obj.exito == 1) {
-        let html = '';
-        for(var index = 0; index < obj.data.length; index++) {
-          const element = obj.data[index];
-          html += '<tr><td>' + element.start_date + '</td>';
-          html += '<td>' + element.end_date + '</td>';
-          html += '<td>' + element.statusLabel + '</td></tr>';
-        }
-        jQuery('#table-moviebillboards').html(html);
-      } else {
-        const html = '<tr><td colspan="3">No records</td></tr>';
-        jQuery('#table-moviebillboards').html(html);
-      }
-    },
-    error: function (jqXHR, textStatus, errorThrown) {
-      toastr.error('Error loading the moviebillboards !Please contact to administrator¡ ', 'ERROR', {closeButton: true, 'progressBar': true, preventDuplicates: true, positionClass: 'toast-bottom-right'});
-    }
-  });
-  e.stopPropagation();
-});
+//   e.stopPropagation();
+// });
+
+// jQuery('.moviebillboards').on('click', async function(e) {
+//   e.preventDefault();
+//   jQuery('.tooltipped').tooltip();
+
+//   e.stopPropagation();
+// });
 
 JS;
 $this->registerJs($script, View::POS_READY, 'init-list');

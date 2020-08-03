@@ -121,7 +121,7 @@ class Movietheater extends \yii\db\ActiveRecord
     {
       $class = '';
       switch ($this->status) {
-        case Movietheater::Inactive:
+        case Movietheater::INACTIVE:
           $class = 'red lighten-4';
         break;
         default:

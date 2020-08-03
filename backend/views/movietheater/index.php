@@ -161,7 +161,7 @@ $gridColumns = [
     },
     'width'          => '5%',
     'value'    => function($model, $key, $index, $widget) {
-      return $model->id.' themoviedb ID: '.$model->moviedb_id;
+      return $model->id;
     },
     'filter' => true,
     'filterInputOptions'=>['placeholder'=>'Search by theater...', 'tab-index' => 2],

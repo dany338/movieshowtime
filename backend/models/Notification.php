@@ -131,7 +131,7 @@ class Notification extends \yii\db\ActiveRecord
     public function getColorRow()
     {
       $class = '';
-      switch ($this->estado) {
+      switch ($this->status) {
         case Notification::INACTIVE:
           $class = 'red lighten-4';
         break;
