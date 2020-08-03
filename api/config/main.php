@@ -80,22 +80,6 @@ return [
                       'GET obtener' => 'obtener',
                   ],
                 ],
-                [
-                  'class' => 'yii\rest\UrlRule',
-                  'controller' => [
-                    'v1/service',
-                  ],
-                  'tokens' => [
-                      '{id}' => '<id:\\w+>'
-                  ],
-                  'extraPatterns' => [
-                      'OPTIONS options' => 'options', // 'xxxxx' refers to 'actionXxxxx'
-                      'GET search'      => 'search',
-                      'POST create'     => 'create',
-                      'POST solicitar'  => 'solicitar',
-                      'PUT update'      => 'update',
-                  ],
-                ],
             ],
           ],
           'Yii2Twilio' => [

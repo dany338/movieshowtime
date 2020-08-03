@@ -8,6 +8,7 @@ use backend\models\SubscriptionSearch;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
+use yii\filters\AccessControl;
 use backend\models\ModelEXCELZIPExporter;
 /**
  * SubscriptionController implements the CRUD actions for Subscription model.
