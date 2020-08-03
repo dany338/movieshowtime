@@ -6,9 +6,9 @@ const cardBillboard = (id, image, movie, theater, start_date, end_date) => {
       <img
         class="Card--image"
         src="${image}"
-        alt="${name}"
+        alt="${movie}"
       />
-      <h1 class="Card--movie">${name}</h1>
+      <h1 class="Card--movie">${movie}</h1>
       <h4 class="Card--theater">${theater}</h4>
       <span class="Card--details">
         ${start_date} to ${end_date}
