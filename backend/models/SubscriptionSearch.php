@@ -47,6 +47,10 @@ class SubscriptionSearch extends Subscription
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
+            'pagination' => [
+              'pageSize' => 8,
+            ],
+            'sort'=> ['defaultOrder' => ['id' => SORT_DESC]]
         ]);
 
         $this->load($params);
@@ -64,8 +68,18 @@ class SubscriptionSearch extends Subscription
             'uid' => $this->uid,
             'notification' => $this->notification,
             'status' => $this->status,
-            'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
+        ]);
+
+        if(!empty($this->created_at)) {
+          $this->created_at = strtotime($this->created_at);
+          $this->created_at = date('Y-m-d', $this->created_at);
+        }
+
+        $query->andFilterWhere([
+          'like',
+          'DATE_FORMAT(created_at,"%Y-%m-%d")',
+          $this->created_at
         ]);
 
         return $dataProvider;

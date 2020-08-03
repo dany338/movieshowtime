@@ -4,6 +4,7 @@ namespace backend\models;
 
 use Yii;
 use yii\helpers\ArrayHelper;
+use dektrium\user\models\User;
 /**
  * This is the model class for table "moviebillboard".
  *
@@ -155,7 +156,27 @@ class Moviebillboard extends \yii\db\ActiveRecord
       });
     }
 
-    public static function getSql($month, $year)
+    public static function getSql($movie = '')
+    {
+      $condition  = (!empty($movie)) ? ' WHERE a.movie_id =:movie a.status = 1 and DATE_FORMAT(a.start_date, "%Y") =:year and DATE_FORMAT(a.start_date, "%m") =:month and a.movie_id = b.id and a.movietheater_id = c.id ' : '';
+      $sql = ' SELECT a.id,
+                      b.name as movie,
+                      b.moviedb_image as image,
+                      c.name as theater,
+                      DATE_FORMAT(a.start_date, "%Y-%m-%d %H:%i %p") as start_date,
+                      DATE_FORMAT(a.end_date, "%Y-%m-%d %H:%i %p") as end_date,
+                      CASE
+                        WHEN a.status = 0 THEN "INACTIVE"
+                        WHEN a.status = 1 THEN "ACTIVE"
+                      END AS statusLabel
+                 FROM moviebillboard as a, movie as b, movietheater as c
+                '.$condition.'
+                ORDER BY a.id DESC';
+
+      return $sql;
+    }
+
+    public static function getSqlMonths($month, $year)
     {
       $condition  = (!empty($month)) ? ' WHERE a.status = 1 and DATE_FORMAT(a.start_date, "%Y") =:year and DATE_FORMAT(a.start_date, "%m") =:month and a.movie_id = b.id and a.movietheater_id = c.id ' : '';
       $sql = ' SELECT a.id,
@@ -179,11 +200,20 @@ class Moviebillboard extends \yii\db\ActiveRecord
     {
       foreach ($this->movie->subscriptions as $index => $subscription):
         if($subscription->status == 1) {
-          $notification = Notificacion::find()->where(['moviebillboard_id'=> $this->id])->one();
+          $notification = Notification::find()->where(['moviebillboard_id'=> $this->id])->one();
           if($notification === null) {
-            $user    = User::findOne($this->uid);
+            $user    = User::findOne($subscription->uid);
             $mensaje = $user->mailer->sendMoviebillboardMessage($user, $this->movie, $this, $subscription);
             if($mensaje) {
+              $subscription->notification = (int)$subscription->notification + 1;
+              $subscription->save(false);
+              $notification = new Notification();
+              $notification->subscription_id = $subscription->id;
+              $notification->uid             = $user->id;
+              $notification->description     = 'Send billboards'.' # '.$subscription->notification;
+              $notification->status = 1;
+              $notification->created_at      = date('Y-m-d H:i:s');
+              $notification->updated_at      = date('Y-m-d H:i:s');
               $notification->moviebillboard_id = $this->id;
               $notification->save(false);
             }

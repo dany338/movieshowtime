@@ -7,8 +7,8 @@ use yii\web\View;
 
 $user                 = User::findOne($model->user_first_id);
 $user_first           = $user->profile->name;
-$created_at           = date ( 'd M, Y g:i A' , $model->created_at );
-$updated_at           = date ( 'd M, Y g:i A' , $model->updated_at );
+$created_at           = date( 'd M, Y g:i A', strtotime($model->created_at));
+$updated_at           = date( 'd M, Y g:i A', strtotime($model->updated_at));
 $countSubscriptions   = count($model->subscriptions);
 $countMoviebillboards = count($model->moviebillboards);
 
@@ -54,6 +54,12 @@ $this->registerJs($script, View::POS_READY, 'script-detalle');
   <div class="col s12">
       <div class="img-thumbnail img-rounded text-center">
           <?= Html::img('@logo', ['title' => Yii::t('yii', 'Movie Show Time Finder'), 'width'=>'100%', 'height'=>'200', 'style' => 'padding:2px;']); ?>
+          <div class="small text-muted" style="text-decoration: underline;"><b>Created at: <?=$created_at; ?></b></div>
+      </div>
+  </div>
+  <div class="col s12">
+      <div class="img-thumbnail img-rounded text-center">
+          <?= Html::img($model->moviedb_image, ['title' => Yii::t('yii', 'Movie Show Time Finder'), 'width'=>'100%', 'height'=>'200', 'style' => 'padding:2px;']); ?>
           <div class="small text-muted" style="text-decoration: underline;"><b>Created at: <?=$created_at; ?></b></div>
       </div>
   </div>

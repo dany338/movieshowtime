@@ -75,11 +75,11 @@ jQuery('.subscriptions').on('click', async function(e) {
       console.log(obj);
       if(obj.exito == 1) {
         let html = '';
-        for(var index = 0; index < obj.subscriptions.length; index++) {
-          const element = obj.subscriptions[index];
-          html += '<tr><td>' + element.user + '</td></tr>';
-          html += '<tr><td>' + element.created_at + '</td></tr>';
-          html += '<tr><td>' + element.notification + '</td></tr>';
+        for(var index = 0; index < obj.data.length; index++) {
+          const element = obj.data[index];
+          html += '<tr><td>' + element.user + '</td>';
+          html += '<td>' + element.created_at + '</td>';
+          html += '<td>' + element.notification + '</td></tr>';
         }
         jQuery('#table-subscriptions').html(html);
       } else {
@@ -108,11 +108,11 @@ jQuery('.moviebillboards').on('click', async function(e) {
       console.log(obj);
       if(obj.exito == 1) {
         let html = '';
-        for(var index = 0; index < obj.moviebillboards.length; index++) {
-          const element = obj.moviebillboards[index];
-          html += '<tr><td>' + element.start_date + '</td></tr>';
-          html += '<tr><td>' + element.end_date + '</td></tr>';
-          html += '<tr><td>' + element.statusLabel + '</td></tr>';
+        for(var index = 0; index < obj.data.length; index++) {
+          const element = obj.data[index];
+          html += '<tr><td>' + element.start_date + '</td>';
+          html += '<td>' + element.end_date + '</td>';
+          html += '<td>' + element.statusLabel + '</td></tr>';
         }
         jQuery('#table-moviebillboards').html(html);
       } else {
@@ -251,7 +251,7 @@ $gridColumns = [
     'updateOptions' => ['label'=>'<i class="material-icons">edit</i>'],
     'deleteOptions' => ['label'=>'<i class="material-icons">delete</i>'],
     'width'         => '5%',
-    'template'      => '{view}&nbsp;{update}',
+    'template'      => '{view}',
     'buttons' => [
       'view' => function ($url, $model) {
         return Html::a('<i class="material-icons circle">visibility</i>', $url, [
@@ -261,28 +261,17 @@ $gridColumns = [
                   'data-tooltip' => '<p style="text-align:justify;">View movie:<br><span class="amber-text text-accent-3"><b>'.$model->id.'</b></span></p>'
         ]);
       },
-      'update' => function ($url, $model) {
-        return Html::a('<i class="material-icons circle">edit</i>', $url, [
-                  'class' => 'btn-floating waves-effect cyan tooltipped',
-                  'data-position' => 'top',
-                  'data-delay' => '50',
-                  'data-tooltip' => '<p style="text-align:justify;">Update movie:<br><span class="amber-text text-accent-3"><b>'.$model->id.'</b></span></p>'
-        ]);
-      },
     ],
     'urlCreator' => function ($action, $model, $key, $index) {
         switch ($action) {
           case 'view':
             $url = Url::to('@hostback/movie/view?id='.$model->id, true);
           break;
-          case 'update':
-            $url = Url::to('@hostback/movie/update?id='.$model->id, true);
-          break;
       }
       return $url;
     },
     'visibleButtons' => [
-      'view'   => Yii::$app->user->can('administrador'),
+      'view'   => true,
     ]
   ],
   [
@@ -359,8 +348,8 @@ $gridColumns = [
     },
     'width'          => '15%',
     'value'          => function ($model, $key, $index, $widget) {
-        $html = '<b>Created at:</b><br><span class="grey-text">'.date('d M, Y g:i A', $model->created_at).'</span>';
-        $html .= '<br><b>Updated at:</b><br><span class="grey-text">'.date('d M, Y g:i A', $model->updated_at).'</span>';
+        $html = '<b>Created at:</b><br><span class="grey-text">'.date('d M, Y g:i A', strtotime($model->created_at)).'</span>';
+        $html .= '<br><b>Updated at:</b><br><span class="grey-text">'.date('d M, Y g:i A', strtotime($model->updated_at)).'</span>';
         return $html;
     },
     'filterType' => GridView::FILTER_DATE,

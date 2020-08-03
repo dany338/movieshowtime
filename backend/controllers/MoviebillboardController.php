@@ -23,10 +23,10 @@ class MoviebillboardController extends Controller
       return [
         'access' => [
           'class' => AccessControl::className(),
-          'only' => ['index', 'view', 'export'],
+          'only' => ['index', 'view', 'export', 'send-notifications-subscribers'],
           'rules' => [
             [
-              'actions' => ['index', 'view', 'export'],
+              'actions' => ['index', 'view', 'export', 'send-notifications-subscribers'],
               'allow' => true,
               'roles' => ['admin'],
             ],
@@ -146,4 +146,18 @@ class MoviebillboardController extends Controller
                                               $sql,
                                               "Report_Movie_billboard_".date('Y-m-d_h:i'));
     }
+
+  public function actionSendNotificationsSubscribers()
+  {
+    ini_set("upload_max_filesize", "256M");
+    ini_set("post_max_size", "256M");
+    ini_set('max_execution_time', 0);
+    ini_set('memory_limit', -1);
+    ini_set('max_input_time', -1);
+    set_time_limit(0);
+    $moviebillboards = Moviebillboard::find()->where('DATE_FORMAT(start_date,"%Y-%m-%d") = DATE_FORMAT(NOW(),"%Y-%m-%d")')->limit(50)->all();
+    foreach ($moviebillboards as $index => $moviebillboard):
+      $moviebillboard->setSendNotificationsSubscribers();
+    endforeach;
+  }
 }

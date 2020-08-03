@@ -144,8 +144,8 @@ class Movie extends \yii\db\ActiveRecord
     public function getColorRow()
     {
       $class = '';
-      switch ($this->estado) {
-        case Movie::Inactive:
+      switch ($this->status) {
+        case Movie::INACTIVE:
           $class = 'red lighten-4';
         break;
         default:

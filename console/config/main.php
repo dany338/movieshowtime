@@ -21,6 +21,12 @@ return [
             'namespace' => 'common\fixtures',
           ],
     ],
+    'modules' => [
+      'user' => [
+          'class' => 'dektrium\user\Module',
+      ],
+      'rbac' => 'dektrium\rbac\RbacConsoleModule',
+    ],
     'components' => [
         'log' => [
             'targets' => [
@@ -29,6 +35,9 @@ return [
                     'levels' => ['error', 'warning'],
                 ],
             ],
+        ],
+        'authManager' => [
+          'class' => 'components\MyManager',
         ],
     ],
     'params' => $params,

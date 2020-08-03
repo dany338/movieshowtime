@@ -97,7 +97,7 @@ class MovieController extends Controller
           $params = [
             ':movie' => $params['movie']
           ];
-          // $consulta->bindValues($params);
+          $consulta->bindValues($params);
           $data       = $consulta->queryAll();
           $exito      = 0;
           $statusCode = 200;
@@ -151,7 +151,7 @@ class MovieController extends Controller
           $params = [
             ':movie' => $params['movie']
           ];
-          // $consulta->bindValues($params);
+          $consulta->bindValues($params);
           $data       = $consulta->queryAll();
           $exito      = 0;
           $statusCode = 200;

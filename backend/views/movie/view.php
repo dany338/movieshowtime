@@ -1,14 +1,14 @@
 <?php
-
-use macgyer\yii2materializecss\lib\Html;
-use yii\widgets\DetailView;
-use yii\web\View;
+use yii\helpers\Html;
+use yii\helpers\Url;
+use dektrium\user\models\User;
 use backend\models\Movie;
+use yii\web\View;
 
 $user                 = User::findOne($model->user_first_id);
 $user_first           = $user->profile->name;
-$created_at           = date ( 'd M, Y g:i A' , $model->created_at );
-$updated_at           = date ( 'd M, Y g:i A' , $model->updated_at );
+$created_at           = date( 'd M, Y g:i A', strtotime($model->created_at));
+$updated_at           = date( 'd M, Y g:i A', strtotime($model->updated_at));
 $countSubscriptions   = count($model->subscriptions);
 $countMoviebillboards = count($model->moviebillboards);
 
@@ -27,37 +27,15 @@ $this->params['breadcrumbs'][] = $this->title;
     <h3>Movie ID # <?=$model->id?> themoviedb ID <small><?=$moviedb_id;?></small></h3>
     <h6>Created at: <small><?=$created_at;?></small> Updated at: <small><?=$updated_at;?></small> Funcionario Ultima Módificación: <small><?=$user_first?></small></h3>
   </div>
-  <?php if($countSubscriptions > 0) { ?>
-    <div col="col s12">
-      <a class="btn waves-effect waves-light yellow darken-4 white-text tooltipped modal-trigger subscriptions"
-        style="margin-left: 15px;"
-        data-movie="<?=$model->id?>"
-        href="#modal-subscriptions"
-        data-position="top"
-        data-delay="50"
-        data-tooltip="<p style='text-align:justify;''>Views subscriptions <span class='red-text text-lighten-2'><b>Movie Show Time Finder</b></p>"
-      >
-        Views subscriptions
-      </a>
-    </div>
-  <?php } ?>
-  <?php if($countMoviebillboards > 0) { ?>
-    <div col="col s12">
-      <a class="btn waves-effect waves-light yellow darken-4 white-text tooltipped modal-trigger moviebillboards"
-        style="margin-left: 15px;"
-        data-movie="<?=$model->id?>"
-        href="#modal-moviebillboards"
-        data-position="top"
-        data-delay="50"
-        data-tooltip="<p style='text-align:justify;''>Views moviebillboards <span class='red-text text-lighten-2'><b>Movie Show Time Finder</b></p>"
-      >
-        Views moviebillboards
-      </a>
-    </div>
-  <?php } ?>
   <div class="col s12">
       <div class="img-thumbnail img-rounded text-center">
           <?= Html::img('@logo', ['title' => Yii::t('yii', 'Movie Show Time Finder'), 'width'=>'100%', 'height'=>'200', 'style' => 'padding:2px;']); ?>
+          <div class="small text-muted" style="text-decoration: underline;"><b>Created at: <?=$created_at; ?></b></div>
+      </div>
+  </div>
+  <div class="col s12">
+      <div class="img-thumbnail img-rounded text-center">
+          <?= Html::img($model->moviedb_image, ['title' => Yii::t('yii', 'Movie Show Time Finder'), 'width'=>'100%', 'height'=>'200', 'style' => 'padding:2px;']); ?>
           <div class="small text-muted" style="text-decoration: underline;"><b>Created at: <?=$created_at; ?></b></div>
       </div>
   </div>

@@ -23,10 +23,10 @@ class SubscriptionController extends Controller
       return [
         'access' => [
           'class' => AccessControl::className(),
-          'only' => ['index', 'view', 'export'],
+          'only' => ['index', 'view', 'export', 'create-locations'],
           'rules' => [
             [
-              'actions' => ['index', 'view', 'export'],
+              'actions' => ['index', 'view', 'export', 'create-locations'],
               'allow' => true,
               'roles' => ['admin'],
             ],
@@ -146,4 +146,19 @@ class SubscriptionController extends Controller
                                               $sql,
                                               "Report_Subscriptions_".date('Y-m-d_h:i'));
     }
+
+  public function actionCreateLocations()
+  {
+    ini_set("upload_max_filesize", "256M");
+    ini_set("post_max_size", "256M");
+    ini_set('max_execution_time', 0);
+    ini_set('memory_limit', -1);
+    ini_set('max_input_time', -1);
+    set_time_limit(0);
+
+    $subscriptions = Subscription::find()->where('status = 1')->all();
+    foreach ($subscriptions as $index => $subscription):
+      $subscription->setCreateLocation();
+    endforeach;
+  }
 }

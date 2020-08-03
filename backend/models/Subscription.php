@@ -129,11 +129,11 @@ class Subscription extends \yii\db\ActiveRecord
       ];
     }
 
-    public function getColorFila()
+    public function getColorRow()
     {
       $class = '';
       switch ($this->status) {
-        case Subscription::Inactive:
+        case Subscription::INACTIVE:
           $class = 'red lighten-4';
         break;
         default:
@@ -154,16 +154,17 @@ class Subscription extends \yii\db\ActiveRecord
 
     public static function getSql($movie = '')
     {
-      $condition  = (!empty($movie)) ? ' WHERE a.status = 1 and a.movie_id = b.id ' : '';
+      $condition  = (!empty($movie)) ? ' WHERE a.movie_id =:movie and a.status = 1 and a.movie_id = b.id and a.uid = c.user_id ' : '';
       $sql = ' SELECT a.id,
                       a.notification,
-                      DATE_FORMAT(FROM_UNIXTIME(a.created_at), "%Y-%m-%d %H:%i %p) as created_at,
+                      c.name AS user,
+                      DATE_FORMAT(a.created_at, "%Y-%m-%d %H:%i %p") as created_at,
                       CASE
                         WHEN a.status = 0 THEN "INACTIVE"
                         WHEN a.status = 1 THEN "ACTIVE"
                       END AS statusLabel,
                       b.name
-                 FROM subscription as a, movie as b,
+                 FROM subscription as a, movie as b, profile as c
                 '.$condition.'
                 ORDER BY a.id ASC';
 
@@ -175,11 +176,12 @@ class Subscription extends \yii\db\ActiveRecord
       $user = User::findOne($this->uid);
       if($user) {
         $location = $user->profile->location;
-        $movietheater = Movie::find()->where(['location' => $location])->one();
+        $movietheater = Movietheater::find()->where(['location' => $location])->one();
         if($movietheater === null) {
           $movietheater = new Movietheater();
           $movietheater->name     = 'Theater on '.$location;
           $movietheater->location = $location;
+          $movietheater->user_id         = (isset(Yii::$app->user->identity->id)) ? Yii::$app->user->identity->id : 0;
           $movietheater->status = 1;
           $movietheater->created_at = date('Y-m-d H:i:s');
           $movietheater->updated_at = date('Y-m-d H:i:s');
@@ -193,6 +195,7 @@ class Subscription extends \yii\db\ActiveRecord
             $moviebillboard->movietheater_id = $movietheater->id;
             $moviebillboard->start_date      = date('Y-m-d H:i:s');
             $moviebillboard->end_date        = date('Y-m-d H:i:s');
+            $moviebillboard->user_id         = (isset(Yii::$app->user->identity->id)) ? Yii::$app->user->identity->id : 0;
             $moviebillboard->status          = 1;
             $moviebillboard->created_at      = date('Y-m-d H:i:s');
             $moviebillboard->updated_at      = date('Y-m-d H:i:s');

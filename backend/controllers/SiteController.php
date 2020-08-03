@@ -125,14 +125,14 @@ class SiteController extends Controller
       //> Start Transaction
       $transaction = $db->beginTransaction();
       try {
-        $sql = Moviebillboard::getSql($month, $year);
+        $sql = Moviebillboard::getSqlMonths($month, $year);
         $consulta = $db->createCommand($sql);
         $params = [
           ':month'=> $month,
           ':year' => $year,
         ];
         $consulta->bindValues($params);
-        $tareas   = $consulta->queryAll();
+        $moviebillboard   = $consulta->queryAll();
         if(count($moviebillboard) > 0){
           $exito      = 1;
           $mensaje    = '';

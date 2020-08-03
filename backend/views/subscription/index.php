@@ -93,22 +93,22 @@ for ($i=$date - 1; $i <= $date; $i++) {
 </div>
 <?php
 $gridColumns = [
-  [
-    'class' => 'kartik\grid\ExpandRowColumn',
-    'width' => '3%',
-    'value' => function ($model, $key, $index, $column) {
-        return GridView::ROW_COLLAPSED;
-    },
-    'detail' => function ($model, $key, $index, $column) {
-        return Yii::$app->controller->renderPartial('_expand-row-details', ['model' => $model]);
-    },
-    'headerOptions' => ['class' => 'kartik-sheet-style'],
-    'expandOneOnly' => true,
-    'expandIcon'    => '<i class="material-icons">arrow_right</i>',
-    'collapseIcon'  => '<i class="material-icons">arrow_drop_down</i>',
-    'expandTitle'   => 'Open Detail Notification',
-    'collapseTitle' => 'Close Detail Notification'
-  ],
+  // [
+  //   'class' => 'kartik\grid\ExpandRowColumn',
+  //   'width' => '3%',
+  //   'value' => function ($model, $key, $index, $column) {
+  //       return GridView::ROW_COLLAPSED;
+  //   },
+  //   'detail' => function ($model, $key, $index, $column) {
+  //       return Yii::$app->controller->renderPartial('_expand-row-details', ['model' => $model]);
+  //   },
+  //   'headerOptions' => ['class' => 'kartik-sheet-style'],
+  //   'expandOneOnly' => true,
+  //   'expandIcon'    => '<i class="material-icons">arrow_right</i>',
+  //   'collapseIcon'  => '<i class="material-icons">arrow_drop_down</i>',
+  //   'expandTitle'   => 'Open Detail Notification',
+  //   'collapseTitle' => 'Close Detail Notification'
+  // ],
   [
     'class'         => '\kartik\grid\ActionColumn',
     'viewOptions'   => ['label'=>'<i class="material-icons">visibility</i>'],
@@ -227,8 +227,8 @@ $gridColumns = [
     },
     'width'          => '15%',
     'value'          => function ($model, $key, $index, $widget) {
-        $html = '<b>Created at:</b><br><span class="grey-text">'.date('d M, Y g:i A', $model->created_at).'</span>';
-        $html .= '<br><b>Updated at:</b><br><span class="grey-text">'.date('d M, Y g:i A', $model->updated_at).'</span>';
+      $html = '<b>Created at:</b><br><span class="grey-text">'.date('d M, Y g:i A', strtotime($model->created_at)).'</span>';
+      $html .= '<br><b>Updated at:</b><br><span class="grey-text">'.date('d M, Y g:i A', strtotime($model->updated_at)).'</span>';
         return $html;
     },
     'filterType' => GridView::FILTER_DATE,

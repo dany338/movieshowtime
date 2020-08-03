@@ -69,6 +69,8 @@ class UsersController extends ActiveController
           Yii::$app->getResponse()->getHeaders()->set('Access-Control-Allow-Origin', '*');
           Yii::$app->getResponse()->getHeaders()->set('Access-Control-Allow-Headers','Content-Type');
           Yii::$app->end();
+      } else if( (Yii::$app->getRequest()->getMethod() === 'POST') || (Yii::$app->getRequest()->getMethod() === 'GET') || (Yii::$app->getRequest()->getMethod() === 'PUT') ) {
+        Yii::$app->getResponse()->getHeaders()->set('Access-Control-Allow-Origin', '*');
       }
 
       return true;
@@ -152,7 +154,7 @@ class UsersController extends ActiveController
 
         $user->auth_key   = Yii::$app->security->generateRandomString();
         $user->save(false);
-
+        $description = 'Existing user & send notification';
         $movie = Movie::find()->where(['moviedb_id' => $moviedb_id])->one();
         if($movie === null) {
           $movie = new Movie();
@@ -269,6 +271,7 @@ class UsersController extends ActiveController
       $age       = $requests['age'];
       $email     = $requests['email'];
       $location  = $requests['location'];
+      $mobile  = $requests['mobile'];
       $rolname   = 'subscriptor';
 
       $moviedb_id   = $requests['moviedb_id'];
@@ -285,6 +288,7 @@ class UsersController extends ActiveController
         $user->password_hash = Yii::$app->security->generatePasswordHash($username, Yii::$app->getModule('user')->cost);
         $user->auth_key      = Yii::$app->security->generateRandomString();
         $user->confirmed_at  = time();
+        $user->mobile        = $mobile;
         $user->created_at    = time();
         $user->updated_at    = time();
         $user->flags         = 0;
@@ -298,7 +302,7 @@ class UsersController extends ActiveController
 
           $profile                 = $user->profile;
           $profile->user_id        = $user->id;
-          $profile->name           = $naemailme;
+          $profile->name           = $name;
           $profile->public_email   = $email;
           $profile->gravatar_email = $email;
           $profile->gravatar_id    = 'b95021aad667876effd8c427382edf4c';

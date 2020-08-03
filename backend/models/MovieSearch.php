@@ -18,7 +18,7 @@ class MovieSearch extends Movie
     public function rules()
     {
         return [
-            [['id', 'moviedb_id', 'status'], 'integer'],
+            [['id', 'moviedb_id', 'status', 'user_first_id'], 'integer'],
             [['name', 'created_at', 'updated_at'], 'safe'],
         ];
     }
@@ -47,6 +47,10 @@ class MovieSearch extends Movie
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
+            'pagination' => [
+              'pageSize' => 8,
+            ],
+            'sort'=> ['defaultOrder' => ['id' => SORT_DESC]]
         ]);
 
         $this->load($params);
@@ -61,9 +65,20 @@ class MovieSearch extends Movie
         $query->andFilterWhere([
             'id' => $this->id,
             'moviedb_id' => $this->moviedb_id,
+            'user_first_id' => $this->user_first_id,
             'status' => $this->status,
-            'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
+        ]);
+
+        if(!empty($this->created_at)) {
+          $this->created_at = strtotime($this->created_at);
+          $this->created_at = date('Y-m-d', $this->created_at);
+        }
+
+        $query->andFilterWhere([
+          'like',
+          'DATE_FORMAT(created_at,"%Y-%m-%d")',
+          $this->created_at
         ]);
 
         $query->andFilterWhere(['like', 'name', $this->name]);

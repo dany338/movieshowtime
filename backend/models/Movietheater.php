@@ -133,7 +133,7 @@ class Movietheater extends \yii\db\ActiveRecord
 
     public static function getMovietheaters()
     {
-      $movietheaters = Moviebillboard::find()->where('status = 1')->all();
+      $movietheaters = Movietheater::find()->where('status = 1')->all();
       return ArrayHelper::map($movietheaters, 'id', function($model, $defaultValue) {
         return '->. '. $model->name . ' location: (' . $model->location . ')';
       });
@@ -150,7 +150,7 @@ class Movietheater extends \yii\db\ActiveRecord
                       WHEN a.status = 0 THEN "INACTIVE"
                       WHEN a.status = 1 THEN "ACTIVE"
                     END AS STATUS
-                FROM moviebillboard as a
+                FROM movietheater as a
           '.$condition.'
             ORDER BY a.id DESC';
       return $sql;
