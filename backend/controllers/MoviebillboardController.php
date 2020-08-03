@@ -9,7 +9,7 @@ use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
 use yii\filters\AccessControl;
-
+use backend\models\ModelEXCELZIPExporter;
 /**
  * MoviebillboardController implements the CRUD actions for Moviebillboard model.
  */
@@ -20,14 +20,19 @@ class MoviebillboardController extends Controller
      */
     public function behaviors()
     {
-        return [
-            'verbs' => [
-                'class' => VerbFilter::className(),
-                'actions' => [
-                    'delete' => ['POST'],
-                ],
+      return [
+        'access' => [
+          'class' => AccessControl::className(),
+          'only' => ['index', 'view', 'export'],
+          'rules' => [
+            [
+              'actions' => ['index', 'view', 'export'],
+              'allow' => true,
+              'roles' => ['admin'],
             ],
-        ];
+          ],
+        ],
+      ];
     }
 
     /**
@@ -121,5 +126,24 @@ class MoviebillboardController extends Controller
         } else {
             throw new NotFoundHttpException('The requested page does not exist.');
         }
+    }
+
+    public function actionExport()
+    {
+      ini_set("upload_max_filesize", "256M");
+      ini_set("post_max_size", "256M");
+      ini_set('max_execution_time', 0);
+      ini_set('memory_limit', -1);
+      ini_set('max_input_time', -1);
+      set_time_limit(0);
+
+      $params      = Yii::$app->request->queryParams;
+      $paramsQuery = [':year' => $params['year']];
+      $sql         = Moviebillboard::getSqlExport($params['year']);
+
+      $modelCSVZIPExporter = new ModelEXCELZIPExporter();
+      $modelCSVZIPExporter->exportToExcelsZIP($paramsQuery,
+                                              $sql,
+                                              "Report_Movie_billboard_".date('Y-m-d_h:i'));
     }
 }

@@ -26,6 +26,28 @@ $this->registerJs($script, View::POS_READY, 'script-index');
     </div>
   </div>
 </div>
+<div class="row">
+  <div class="col s12 m6 l6">
+    <?=Html::a('<i class="material-icons circle right">touch_app</i> '.Yii::t('yii', 'Create locations'), [Url::to('/subscription/create-locations')], [
+        'class' => 'btn waves-effect waves-light red darken-4 white-text tooltipped',
+        'target' => '_blank',
+        'data-position' => 'top',
+        'data-delay' => '50',
+        'data-tooltip' => 'Create locations',
+      ]);
+    ?>
+  </div>
+  <div class="col s12 m6 l6">
+    <?=Html::a('<i class="material-icons circle right">touch_app</i> '.Yii::t('yii', 'Send notifications subscribers'), [Url::to('/moviebillboard/send-notifications-subscribers')], [
+        'class' => 'btn waves-effect waves-light red darken-4 white-text tooltipped',
+        'target' => '_blank',
+        'data-position' => 'top',
+        'data-delay' => '50',
+        'data-tooltip' => 'Send notifications subscribers',
+      ]);
+    ?>
+  </div>
+</div>
 <?php
 $this->registerJsFile("@web/js/moviebillboard.js",[
   'depends' => [ \yii\web\JqueryAsset::className() ],

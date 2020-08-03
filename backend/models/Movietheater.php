@@ -138,4 +138,21 @@ class Movietheater extends \yii\db\ActiveRecord
         return '->. '. $model->name . ' location: (' . $model->location . ')';
       });
     }
+
+    public static function getSqlExport($year)
+    {
+      $condition  = (!empty($anio)) ? ' WHERE YEAR(DATE_FORMAT(a.created_at, "%Y-%m-%d")) =:year ' : '';
+      $sql = 'SELECT a.id AS "ID",
+                    a.name AS "TITLE",
+                    DATE_FORMAT(a.created_at, "%Y-%m-%d") AS "CREATE AT",
+                    DATE_FORMAT(a.updated_at, "%Y-%m-%d") AS "UPDATE AT",
+                    CASE
+                      WHEN a.status = 0 THEN "INACTIVE"
+                      WHEN a.status = 1 THEN "ACTIVE"
+                    END AS STATUS
+                FROM moviebillboard as a
+          '.$condition.'
+            ORDER BY a.id DESC';
+      return $sql;
+    }
 }

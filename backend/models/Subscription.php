@@ -16,6 +16,7 @@ use dektrium\user\models\User;
  * @property string $created_at Created at
  * @property string $updated_at Updated at
  *
+ * @property Notification[] $notifications
  * @property Movie $movie
  */
 class Subscription extends \yii\db\ActiveRecord
@@ -57,6 +58,16 @@ class Subscription extends \yii\db\ActiveRecord
             'created_at'   => Yii::t('yii', 'Created at'),
             'updated_at'   => Yii::t('yii', 'Updated at'),
         ];
+    }
+
+    /**
+    * Gets query for [[Notifications]].
+    *
+    * @return \yii\db\ActiveQuery|NotificationQuery
+    */
+    public function getNotifications()
+    {
+      return $this->hasMany(Notification::className(), ['subscription_id' => 'id']);
     }
 
     /**
@@ -156,6 +167,57 @@ class Subscription extends \yii\db\ActiveRecord
                 '.$condition.'
                 ORDER BY a.id ASC';
 
+      return $sql;
+    }
+
+    public function setCreateLocation()
+    {
+      $user = User::findOne($this->uid);
+      if($user) {
+        $location = $user->profile->location;
+        $movietheater = Movie::find()->where(['location' => $location])->one();
+        if($movietheater === null) {
+          $movietheater = new Movietheater();
+          $movietheater->name     = 'Theater on '.$location;
+          $movietheater->location = $location;
+          $movietheater->status = 1;
+          $movietheater->created_at = date('Y-m-d H:i:s');
+          $movietheater->updated_at = date('Y-m-d H:i:s');
+        }
+
+        if($movietheater->save(false)) {
+          $moviebillboard = Moviebillboard::find()->where('movie_id = '. $this->movie_id .' and DATE_FORMAT(start_date,"%Y-%m-%d") = DATE_FORMAT(NOW(),"%Y-%m-%d")')->one();
+          if($moviebillboard === null) {
+            $moviebillboard = new Moviebillboard();
+            $moviebillboard->movie_id        = $this->movie_id;
+            $moviebillboard->movietheater_id = $movietheater->id;
+            $moviebillboard->start_date      = date('Y-m-d H:i:s');
+            $moviebillboard->end_date        = date('Y-m-d H:i:s');
+            $moviebillboard->status          = 1;
+            $moviebillboard->created_at      = date('Y-m-d H:i:s');
+            $moviebillboard->updated_at      = date('Y-m-d H:i:s');
+            $moviebillboard->save(false);
+          }
+        }
+      }
+    }
+
+    public static function getSqlExport($year)
+    {
+      $condition  = (!empty($anio)) ? ' WHERE YEAR(DATE_FORMAT(a.created_at, "%Y-%m-%d")) =:year ' : '';
+      $condition .= (!empty($condition)) ? ' AND a.movie_id = b.id AND a.uid = c.user_id' : ' WHERE a.movie_id = b.id AND a.uid = c.user_id';
+      $sql = 'SELECT a.id AS "ID",
+                    b.name AS "TITLE",
+                    c.name AS "USER",
+                    DATE_FORMAT(a.created_at, "%Y-%m-%d") AS "CREATE AT",
+                    DATE_FORMAT(a.updated_at, "%Y-%m-%d") AS "UPDATE AT",
+                    CASE
+                      WHEN a.status = 0 THEN "INACTIVE"
+                      WHEN a.status = 1 THEN "ACTIVE"
+                    END AS STATUS
+                FROM subscription as a, movie as b, profile as c
+          '.$condition.'
+            ORDER BY a.id DESC';
       return $sql;
     }
 }

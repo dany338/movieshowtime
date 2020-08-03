@@ -103,11 +103,27 @@ class UsersController extends ActiveController
   public function actionLogin() {
     if(Yii::$app->request->isPost) {
       $requests  = \Yii::$app->request->post();
+
       if(!isset($requests['login'])) {
         throw new \yii\web\HttpException(412, 'Field login is not defined!');
       }
 
-      $login    = !empty($requests['login']) ? trim($requests['login']) : null;
+      if(!isset($requests['moviedb_id'])) {
+        throw new \yii\web\HttpException(412, 'Field moviedb_id is not defined!');
+      }
+
+      if(!isset($requests['name'])) {
+        throw new \yii\web\HttpException(412, 'Field name is not defined!');
+      }
+
+      if(!isset($requests['moviedb_image'])) {
+        throw new \yii\web\HttpException(412, 'Field moviedb_image is not defined!');
+      }
+
+      $login        = !empty($requests['login']) ? trim($requests['login']) : null;
+      $moviedb_id   = $requests['moviedb_id'];
+      $moviedb_name = $requests['name'];
+      $moviedb_image= $requests['moviedb_image'];
 
       if(is_null($login)) {
         throw new \yii\web\HttpException(412, 'Fields they are empty!');
@@ -136,6 +152,45 @@ class UsersController extends ActiveController
 
         $user->auth_key   = Yii::$app->security->generateRandomString();
         $user->save(false);
+
+        $movie = Movie::find()->where(['moviedb_id' => $moviedb_id])->one();
+        if($movie === null) {
+          $movie = new Movie();
+          $movie->moviedb_id = $moviedb_id;
+          $movie->moviedb_image = $moviedb_image;
+          $movie->name = $moviedb_name;
+          $movie->status = 1;
+          $movie->user_first_id = $user->id;
+          $movie->created_at = date('Y-m-d H:i:s');
+        }
+        $movie->updated_at = date('Y-m-d H:i:s');
+        if($movie->save(false)) {
+          $subscription = Subscription::find()->where(['movie_id' => $movie->id, 'uid' => $user->id])->one();
+          if($subscription === null) {
+            $subscription = new Subscription();
+            $subscription->movie_id = $movie->id;
+            $subscription->uid = $user->id;
+            $subscription->notification = 0;
+            $subscription->status = 1;
+            $subscription->created_at = date('Y-m-d H:i:s');
+          }
+          $subscription->updated_at = date('Y-m-d H:i:s');
+          if($subscription->save(false)) {
+            $mensaje = $user->mailer->sendSubscriptionMessage($user, $movie, $subscription);
+            if($mensaje) {
+              $subscription->notification = (int)$subscription->notification + 1;
+              $subscription->save(false);
+              $notification = new Notification();
+              $notification->subscription_id = $subscription->id;
+              $notification->uid             = $user->id;
+              $notification->description     = $description.' # '.$subscription->notification;
+              $notification->status = 1;
+              $notification->created_at      = date('Y-m-d H:i:s');
+              $notification->updated_at      = date('Y-m-d H:i:s');
+              $notification->save(false);
+            }
+          }
+        }
 
         $response = \Yii::$app->response;
         \Yii::$app->response->statusCode = 200;
@@ -294,6 +349,7 @@ class UsersController extends ActiveController
           $subscription->movie_id = $movie->id;
           $subscription->uid = $user->id;
           $subscription->notification = 0;
+          $subscription->status = 1;
           $subscription->created_at = date('Y-m-d H:i:s');
         }
         $subscription->updated_at = date('Y-m-d H:i:s');
@@ -306,6 +362,7 @@ class UsersController extends ActiveController
             $notification->subscription_id = $subscription->id;
             $notification->uid             = $user->id;
             $notification->description     = $description.' # '.$subscription->notification;
+            $notification->status = 1;
             $notification->created_at      = date('Y-m-d H:i:s');
             $notification->updated_at      = date('Y-m-d H:i:s');
             $notification->save(false);

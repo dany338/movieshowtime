@@ -174,4 +174,41 @@ class Moviebillboard extends \yii\db\ActiveRecord
 
       return $sql;
     }
+
+    public function setSendNotificationsSubscribers()
+    {
+      foreach ($this->movie->subscriptions as $index => $subscription):
+        if($subscription->status == 1) {
+          $notification = Notificacion::find()->where(['moviebillboard_id'=> $this->id])->one();
+          if($notification === null) {
+            $user    = User::findOne($this->uid);
+            $mensaje = $user->mailer->sendMoviebillboardMessage($user, $this->movie, $this, $subscription);
+            if($mensaje) {
+              $notification->moviebillboard_id = $this->id;
+              $notification->save(false);
+            }
+          }
+        }
+      endforeach;
+
+    }
+
+    public static function getSqlExport($year)
+    {
+      $condition  = (!empty($anio)) ? ' WHERE YEAR(DATE_FORMAT(a.created_at, "%Y-%m-%d")) =:year ' : '';
+      $condition .= (!empty($condition)) ? ' AND a.movie_id = b.id AND a.movietheater_id = c.id ' : ' WHERE a.movie_id = b.id AND a.movietheater_id = c.id ';
+      $sql = 'SELECT a.id AS "ID",
+                    b.name AS "TITLE",
+                    c.name AS "THEATER",
+                    DATE_FORMAT(a.created_at, "%Y-%m-%d") AS "CREATE AT",
+                    DATE_FORMAT(a.updated_at, "%Y-%m-%d") AS "UPDATE AT",
+                    CASE
+                      WHEN a.status = 0 THEN "INACTIVE"
+                      WHEN a.status = 1 THEN "ACTIVE"
+                    END AS STATUS
+                FROM moviebillboard as a, movie as b, movietheater as c
+          '.$condition.'
+            ORDER BY a.id DESC';
+      return $sql;
+    }
 }

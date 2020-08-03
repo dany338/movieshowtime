@@ -9,6 +9,7 @@ use yii\helpers\ArrayHelper;
  *
  * @property int $id
  * @property int $subscription_id Subscription
+ * @property int $moviebillboard_id Movie billboard
  * @property int $uid User
  * @property string $description Description
  * @property int $status Status
@@ -37,7 +38,7 @@ class Notification extends \yii\db\ActiveRecord
     {
         return [
             [['subscription_id', 'uid', 'description', 'status'], 'required'],
-            [['subscription_id', 'uid', 'status'], 'integer'],
+            [['subscription_id', 'moviebillboard_id', 'uid', 'status'], 'integer'],
             [['created_at', 'updated_at'], 'safe'],
             [['description'], 'string', 'max' => 255],
             [['subscription_id'], 'exist', 'skipOnError' => true, 'targetClass' => Subscription::className(), 'targetAttribute' => ['subscription_id' => 'id']],
@@ -52,6 +53,7 @@ class Notification extends \yii\db\ActiveRecord
         return [
             'id'              => Yii::t('yii', 'ID'),
             'subscription_id' => Yii::t('yii', 'Subscription'),
+            'moviebillboard_id' => Yii::t('yii', 'Movie billboard'),
             'uid'             => Yii::t('yii', 'User'),
             'description'     => Yii::t('yii', 'Description'),
             'status'          => Yii::t('yii', 'Status'),
