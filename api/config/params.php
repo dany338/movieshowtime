@@ -1,4 +1,4 @@
 <?php
 return [
-    'adminEmail' => 'dgallo@3dementes.com',
+    'adminEmail' => 'no-reply@movieshowtimefinder.com',
 ];

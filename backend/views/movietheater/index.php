@@ -44,7 +44,7 @@ $this->registerJs($script, View::POS_READY, 'init-list');
 echo Alert::widget([]);
 $date = (int)date('Y');
 $arrays_dates[""] = 'Export all the years';
-for ($i=$fecha - 1; $i <= $date; $i++) {
+for ($i=$date - 1; $i <= $date; $i++) {
   $arrays_dates[$i] = $i;
 }
 ?>

@@ -155,19 +155,20 @@ class Moviebillboard extends \yii\db\ActiveRecord
       });
     }
 
-    public static function getSql($movie = '')
+    public static function getSql($month, $year)
     {
-      $condition  = (!empty($movie)) ? ' WHERE a.status = 1 and a.movie_id = b.id ' : '';
+      $condition  = (!empty($month)) ? ' WHERE a.status = 1 and DATE_FORMAT(a.start_date, "%Y") =:year and DATE_FORMAT(a.start_date, "%m") =:month and a.movie_id = b.id and a.movietheater_id = c.id ' : '';
       $sql = ' SELECT a.id,
-                      a.notification,
-                      DATE_FORMAT(a.start_date, "%Y-%m-%d %H:%i %p) as start_date,
-                      DATE_FORMAT(a.end_date, "%Y-%m-%d %H:%i %p) as end_date,
+                      b.name as movie,
+                      b.moviedb_image as image,
+                      c.name as theater,
+                      DATE_FORMAT(a.start_date, "%Y-%m-%d %H:%i %p") as start_date,
+                      DATE_FORMAT(a.end_date, "%Y-%m-%d %H:%i %p") as end_date,
                       CASE
                         WHEN a.status = 0 THEN "INACTIVE"
                         WHEN a.status = 1 THEN "ACTIVE"
-                      END AS statusLabel,
-                      b.name
-                 FROM moviebillboard as a, movie as b,
+                      END AS statusLabel
+                 FROM moviebillboard as a, movie as b, movietheater as c
                 '.$condition.'
                 ORDER BY a.id DESC';
 

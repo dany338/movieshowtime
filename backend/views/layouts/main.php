@@ -14,7 +14,7 @@ use backend\assets\AppAsset;
 rmrevin\yii\fontawesome\AssetBundle::register($this);
 use rmrevin\yii\fontawesome\FA;
 use dektrium\user\models\Profile;
-use backend\models\Notificacion;
+use backend\models\Notification;
 AppAsset::register($this);
 ?>
 <?php $this->beginPage() ?>
@@ -74,12 +74,12 @@ $this->registerJs($script, View::POS_READY, 'init-menu');
 $profile   = Profile::findOne(Yii::$app->user->identity->id);
 $picture   = !(empty($profile->picture)) ? $profile->picture : '@hostback/img/default_avatar_male.jpg';
 $userlogo  = Url::to($picture,true);
-$notifys   = Notificacion::find()->count();
+$notifies   = Notification::find()->count();
 }
 ?>
 
 <?php if (!Yii::$app->user->isGuest) { ?>
-  <header class="page-header">
+  <header class="">
     <?php
     $userView  = '<div class="user-view">';
     $userView .= '<div class="background blue-grey darken-2" style="text-align:right;"></div>';
@@ -91,7 +91,7 @@ $notifys   = Notificacion::find()->count();
     $menuItems2 = [
       $userView,
       [
-        'label'   => '<i class="material-icons amber-text text-accent-3">account_balance</i> Inicio',
+        'label'   => '<i class="material-icons amber-text text-accent-3">account_balance</i> Home',
         'url'     => Url::to('@hostback/site/index', true),
         'encode'  => false,
         'visible' => !Yii::$app->user->can('punto_bioseguro'),
@@ -99,11 +99,11 @@ $notifys   = Notificacion::find()->count();
           'class' => 'waves-effect white-text tooltipped',
           'data-position' => 'right',
           'data-delay'    => '50',
-          'data-tooltip'  => '<p style="text-align:justify;">Inicio <span class="red-text text-darken-1"><b>E & T</b></span></p>'
+          'data-tooltip'  => '<p style="text-align:justify;">Inicio <span class="red-text text-darken-1"><b>Movie Show Time Finder</b></span></p>'
         ],
       ],
       [
-        'label'   => '<i class="material-icons amber-text text-accent-3">group</i> Usuarios',
+        'label'   => '<i class="material-icons amber-text text-accent-3">group</i> Users',
         'url'     => Url::to('@hostback/user/admin/index', true),
         'encode'  => false,
         'visible' => !Yii::$app->user->can('punto_bioseguro'),
@@ -111,11 +111,11 @@ $notifys   = Notificacion::find()->count();
           'class' => 'waves-effect white-text tooltipped',
           'data-position' => 'right',
           'data-delay'    => '50',
-          'data-tooltip'  => '<p style="text-align:justify;">Usuarios <span class="red-text text-darken-1"><b>E & T</b></span></p>'
+          'data-tooltip'  => '<p style="text-align:justify;">Users <span class="red-text text-darken-1"><b>Movie Show Time Finder</b></span></p>'
         ]
       ],
       [
-        'label'   => '<i class="material-icons amber-text text-accent-3">account_circle</i> Perfil',
+        'label'   => '<i class="material-icons amber-text text-accent-3">account_circle</i> Profile',
         'url'     => Url::to('@hostback/user/settings/profile', true),
         'encode'  => false,
         'visible' => !Yii::$app->user->can('punto_bioseguro'),
@@ -123,242 +123,77 @@ $notifys   = Notificacion::find()->count();
           'class' => 'waves-effect white-text tooltipped',
           'data-position' => 'right',
           'data-delay'    => '50',
-          'data-tooltip'  => '<p style="text-align:justify;">Mi Peril <span class="red-text text-darken-1"><b>E & T</b></span></p>'
+          'data-tooltip'  => '<p style="text-align:justify;">My Profile <span class="red-text text-darken-1"><b>Movie Show Time Finder</b></span></p>'
         ]
       ],
       [
-        'label'   => '<i class="material-icons amber-text text-accent-3">notification_important</i> Notificaciones <span class="badge red lighten-2 white-text">'.$notifys.'</span>',
-        'url'     => Url::to('@hostback/notificacion/index', true),
+        'label'   => '<i class="material-icons amber-text text-accent-3">notification_important</i> Notifications <span class="badge red lighten-2 white-text">'.$notifies.'</span>',
+        'url'     => Url::to('@hostback/notification/index', true),
         'encode'  => false,
         'visible' => !Yii::$app->user->can('punto_bioseguro'),
         'linkOptions' => [
           'class' => 'waves-effect white-text tooltipped',
           'data-position' => 'right',
           'data-delay'    => '50',
-          'data-tooltip'  => '<p style="text-align:justify;">Mis Notificaciones <span class="red-text text-darken-1"><b>E & T</b></span></p>'
-        ]
-      ],
-      '<div class="divider"></div>',
-      '<a class="subheader white-text"><i class="material-icons amber-text text-accent-3">keyboard_arrow_down</i> Opciones * Certificados</a>',
-      [
-        'label'   => '<i class="material-icons amber-text text-accent-3">cloud_download</i> Certificados',
-        'url'     => Url::to('@hostback/certificado/index', true),
-        'encode'  => false,
-        'visible' => !Yii::$app->user->can('punto_bioseguro'),
-        'linkOptions' => [
-          'class' => 'waves-effect white-text tooltipped',
-          'data-position' => 'right',
-          'data-delay'    => '50',
-          'data-tooltip'  => '<p style="text-align:justify;">Certificados Generados <span class="red-text text-darken-1"><b>E & T</b></span></p>'
-        ]
-      ],
-      [
-        'label'   => '<i class="material-icons amber-text text-accent-3">ballot</i> Auditoria',
-        'url'     => Url::to('@hostback/auditoria/index', true),
-        'encode'  => false,
-        'visible' => !Yii::$app->user->can('punto_bioseguro'),
-        'linkOptions' => [
-          'class' => 'waves-effect white-text tooltipped',
-          'data-position' => 'right',
-          'data-delay'    => '50',
-          'data-tooltip'  => '<p style="text-align:justify;">Auditoria Certificados <span class="red-text text-darken-1"><b>E & T</b></span></p>'
+          'data-tooltip'  => '<p style="text-align:justify;">My Notifications <span class="red-text text-darken-1"><b>Movie Show Time Finder</b></span></p>'
         ]
       ],
       '<div class="divider"></div>',
-      '<a class="subheader white-text"><i class="material-icons amber-text text-accent-3">keyboard_arrow_down</i> Opciones * Cursos</a>',
+      '<a class="subheader white-text"><i class="material-icons amber-text text-accent-3">keyboard_arrow_down</i> Options * Movies</a>',
       [
-        'label'   => '<i class="material-icons amber-text text-accent-3">school</i> Entrenadores',
-        'url'     => Url::to('@hostback/entrenador/index', true),
+        'label'   => '<i class="material-icons amber-text text-accent-3">cloud_download</i> Movies',
+        'url'     => Url::to('@hostback/movie/index', true),
         'encode'  => false,
         'visible' => !Yii::$app->user->can('punto_bioseguro'),
         'linkOptions' => [
           'class' => 'waves-effect white-text tooltipped',
           'data-position' => 'right',
           'data-delay'    => '50',
-          'data-tooltip'  => '<p style="text-align:justify;">Entrenadores <span class="red-text text-darken-1"><b>E & T</b></span></p>'
+          'data-tooltip'  => '<p style="text-align:justify;">Movies <span class="red-text text-darken-1"><b>Movie Show Time Finder</b></span></p>'
         ]
       ],
       [
-        'label'   => '<i class="material-icons amber-text text-accent-3">group</i> Cursos',
-        'url'     => Url::to('@hostback/curso/index', true),
+        'label'   => '<i class="material-icons amber-text text-accent-3">ballot</i> Theaters',
+        'url'     => Url::to('@hostback/movietheater/index', true),
         'encode'  => false,
         'visible' => !Yii::$app->user->can('punto_bioseguro'),
         'linkOptions' => [
           'class' => 'waves-effect white-text tooltipped',
           'data-position' => 'right',
           'data-delay'    => '50',
-          'data-tooltip'  => '<p style="text-align:justify;">Cursos <span class="red-text text-darken-1"><b>E & T</b></span></p>'
-        ]
-      ],
-      [
-        'label'   => '<i class="material-icons amber-text text-accent-3">group</i> Programación',
-        'url'     => Url::to('@hostback/entrenadorcurso/index', true),
-        'encode'  => false,
-        'visible' => !Yii::$app->user->can('punto_bioseguro'),
-        'linkOptions' => [
-          'class' => 'waves-effect white-text tooltipped',
-          'data-position' => 'right',
-          'data-delay'    => '50',
-          'data-tooltip'  => '<p style="text-align:justify;">Programación <span class="red-text text-darken-1"><b>E & T</b></span></p>'
-        ]
-      ],
-      [
-        'label'   => '<i class="material-icons amber-text text-accent-3">group</i> Inscritos Cursos',
-        'url'     => Url::to('@hostback/inscritocurso/index', true),
-        'encode'  => false,
-        'visible' => !Yii::$app->user->can('punto_bioseguro'),
-        'linkOptions' => [
-          'class' => 'waves-effect white-text tooltipped',
-          'data-position' => 'right',
-          'data-delay'    => '50',
-          'data-tooltip'  => '<p style="text-align:justify;">Inscriptos Curso <span class="red-text text-darken-1"><b>E & T</b></span></p>'
+          'data-tooltip'  => '<p style="text-align:justify;">Movie Theaters <span class="red-text text-darken-1"><b>Movie Show Time Finder</b></span></p>'
         ]
       ],
       '<div class="divider"></div>',
-      '<a class="subheader white-text"><i class="material-icons amber-text text-accent-3">keyboard_arrow_down</i> Opciones * Empresas</a>',
+      '<a class="subheader white-text"><i class="material-icons amber-text text-accent-3">keyboard_arrow_down</i> Opciones * Subscriptions</a>',
       [
-        'label'   => '<i class="material-icons amber-text text-accent-3">location_city</i> Empresas',
-        'url'     => Url::to('@hostback/entidad/index', true),
+        'label'   => '<i class="material-icons amber-text text-accent-3">school</i> Subscriptions',
+        'url'     => Url::to('@hostback/subscription/index', true),
         'encode'  => false,
         'visible' => !Yii::$app->user->can('punto_bioseguro'),
         'linkOptions' => [
           'class' => 'waves-effect white-text tooltipped',
           'data-position' => 'right',
           'data-delay'    => '50',
-          'data-tooltip'  => '<p style="text-align:justify;">Empresas/Fabricas <span class="red-text text-darken-1"><b>E & T</b></span></p>'
+          'data-tooltip'  => '<p style="text-align:justify;">Subscriptions <span class="red-text text-darken-1"><b>Movie Show Time Finder</b></span></p>'
         ]
       ],
       [
-        'label'   => '<i class="material-icons amber-text text-accent-3">face</i> Inscritos',
-        'url'     => Url::to('@hostback/inscripto/index', true),
+        'label'   => '<i class="material-icons amber-text text-accent-3">group</i> Billboards',
+        'url'     => Url::to('@hostback/moviebillboard/index', true),
         'encode'  => false,
         'visible' => !Yii::$app->user->can('punto_bioseguro'),
         'linkOptions' => [
           'class' => 'waves-effect white-text tooltipped',
           'data-position' => 'right',
           'data-delay'    => '50',
-          'data-tooltip'  => '<p style="text-align:justify;">Inscritos <span class="red-text text-darken-1"><b>E & T</b></span></p>'
-        ]
-      ],
-      '<div class="divider"></div>',
-      '<a class="subheader white-text"><i class="material-icons amber-text text-accent-3">keyboard_arrow_down</i> Opciones * Configuraciones</a>',
-      [
-        'label'   => '<i class="material-icons amber-text text-accent-3">settings</i> Configuración',
-        'url'     => Url::to('@hostback/configuracion/index', true),
-        'encode'  => false,
-        'visible' => !Yii::$app->user->can('punto_bioseguro'),
-        'linkOptions' => [
-          'class' => 'waves-effect white-text tooltipped',
-          'data-position' => 'right',
-          'data-delay'    => '50',
-          'data-tooltip'  => '<p style="text-align:justify;">Configuración <span class="red-text text-darken-1"><b>E & T</b></span></p>'
-        ]
-      ],
-      [
-        'label'   => '<i class="material-icons amber-text text-accent-3">class</i> Diplomas',
-        'url'     => Url::to('@hostback/diploma/index', true),
-        'encode'  => false,
-        'visible' => !Yii::$app->user->can('punto_bioseguro'),
-        'linkOptions' => [
-          'class' => 'waves-effect white-text tooltipped',
-          'data-position' => 'right',
-          'data-delay'    => '50',
-          'data-tooltip'  => '<p style="text-align:justify;">Diplomas <span class="red-text text-darken-1"><b>E & T</b></span></p>'
-        ]
-      ],
-      [
-        'label'   => '<i class="material-icons amber-text text-accent-3">dns</i> Posiciones',
-        'url'     => Url::to('@hostback/posiciones/index', true),
-        'encode'  => false,
-        'visible' => !Yii::$app->user->can('punto_bioseguro'),
-        'linkOptions' => [
-          'class' => 'waves-effect white-text tooltipped',
-          'data-position' => 'right',
-          'data-delay'    => '50',
-          'data-tooltip'  => '<p style="text-align:justify;">Posiciones Datos en Diplomas <span class="red-text text-darken-1"><b>E & T</b></span></p>'
-        ]
-      ],
-      [
-        'label'   => '<i class="material-icons amber-text text-accent-3">backup</i> Importaciones',
-        'url'     => Url::to('@hostback/importacion/index', true),
-        'encode'  => false,
-        'visible' => !Yii::$app->user->can('punto_bioseguro'),
-        'linkOptions' => [
-          'class' => 'waves-effect white-text tooltipped',
-          'data-position' => 'right',
-          'data-delay'    => '50',
-          'data-tooltip'  => '<p style="text-align:justify;">Importaciones de datos realizadas <span class="red-text text-darken-1"><b>E & T</b></span></p>'
-        ]
-      ],
-      '<div class="divider"></div>',
-      '<a class="subheader white-text"><i class="material-icons amber-text text-accent-3">keyboard_arrow_down</i> Opciones * Público</a>',
-      [
-        'label'   => '<i class="material-icons amber-text text-accent-3">spellcheck</i> Consulta',
-        'url'     => Url::to('@hostback/site/consulta', true),
-        'encode'  => false,
-        'visible' => !Yii::$app->user->can('punto_bioseguro'),
-        'linkOptions' => [
-          'class' => 'waves-effect white-text tooltipped',
-          'data-position' => 'right',
-          'data-delay'    => '50',
-          'data-tooltip'  => '<p style="text-align:justify;">Consulta Certificados <span class="red-text text-darken-1"><b>E & T</b></span></p>'
-        ]
-      ],
-      [
-        'label'   => '<i class="material-icons amber-text text-accent-3">supervised_user_circle</i> Inscripción',
-        'url'     => Url::to('@hostback/site/inscripcion', true),
-        'encode'  => false,
-        'visible' => !Yii::$app->user->can('punto_bioseguro'),
-        'linkOptions' => [
-          'class' => 'waves-effect white-text tooltipped',
-          'data-position' => 'right',
-          'data-delay'    => '50',
-          'data-tooltip'  => '<p style="text-align:justify;">Inscripción Cursos <span class="red-text text-darken-1"><b>E & T</b></span></p>'
-        ]
-      ],
-      '<div class="divider"></div>',
-      '<a class="subheader white-text"><i class="material-icons amber-text text-accent-3">keyboard_arrow_down</i> Opciones * Cuestionario</a>',
-      [
-        'label'   => '<i class="material-icons amber-text text-accent-3">how_to_reg</i> Participantes',
-        'url'     => Url::to('@hostback/participante/index', true),
-        'encode'  => false,
-        'visible' => !Yii::$app->user->can('punto_bioseguro'),
-        'linkOptions' => [
-          'class' => 'waves-effect white-text tooltipped',
-          'data-position' => 'right',
-          'data-delay'    => '50',
-          'data-tooltip'  => '<p style="text-align:justify;">Consulta Participantes <span class="red-text text-darken-1"><b>E & T</b></span></p>'
-        ]
-      ],
-      [
-        'label'   => '<i class="material-icons amber-text text-accent-3">create</i> Preguntas',
-        'url'     => Url::to('@hostback/pregunta/index', true),
-        'encode'  => false,
-        'visible' => !Yii::$app->user->can('punto_bioseguro'),
-        'linkOptions' => [
-          'class' => 'waves-effect white-text tooltipped',
-          'data-position' => 'right',
-          'data-delay'    => '50',
-          'data-tooltip'  => '<p style="text-align:justify;">Preguntas registradas <span class="red-text text-darken-1"><b>E & T</b></span></p>'
-        ]
-      ],
-      [
-        'label'   => '<i class="material-icons amber-text text-accent-3">ballot</i> Cuestionarios',
-        'url'     => Url::to('@hostback/cuestionario/index', true),
-        'encode'  => false,
-        'visible' => !Yii::$app->user->can('punto_bioseguro'),
-        'linkOptions' => [
-          'class' => 'waves-effect white-text tooltipped',
-          'data-position' => 'right',
-          'data-delay'    => '50',
-          'data-tooltip'  => '<p style="text-align:justify;">Cuestionarios registrados <span class="red-text text-darken-1"><b>E & T</b></span></p>'
+          'data-tooltip'  => '<p style="text-align:justify;">Billboard <span class="red-text text-darken-1"><b>Movie Show Time Finder</b></span></p>'
         ]
       ],
     ];
 
-    if(!Yii::$app->user->can('punto_bioseguro')) {
       NavBar::begin([
-          'brandLabel'    => Html::img('@logo', ['title' => Yii::t('yii', 'Educación Salud Y Seguridad E & T'), 'width'=>'65','height'=>'45']),
+          'brandLabel'    => Html::img('@logo', ['title' => Yii::t('yii', 'Movie Show Time Finder'), 'width'=>'65','height'=>'45']),
           'brandOptions'  => ['style' => 'left: 45% !Important'],
           'brandUrl'      => Yii::$app->homeUrl,
           'fixed'         => true,
@@ -366,7 +201,7 @@ $notifys   = Notificacion::find()->count();
           'sidenavItems'  => $menuItems2,
           'sidenavToggleButtonOptions' => [
             'options' => [
-              'title' => 'Menu de opciones E & T',
+              'title' => 'Menu options Movie Show Time Finder',
               'class' => 'sidenav-trigger btn btn-flat waves-effect white-text',
               'style' => 'height: 100% !important;',
             ]
@@ -377,10 +212,6 @@ $notifys   = Notificacion::find()->count();
           ],
       ]);
 
-      /*$menuItems = [
-        ['label' => 'Consulte Certificado', 'url' => ['/site/consulta']],
-        ['label' => 'Inscripción Curso', 'url' => ['/site/inscripcion']],
-      ];**/
       if (Yii::$app->user->isGuest) {
           $menuItems = [
             ['label' =>  Yii::t('app', 'Contacto'), 'url' => ['/site/contact']],
@@ -388,9 +219,6 @@ $notifys   = Notificacion::find()->count();
           ];
           $menuItems[] = ['label' => Yii::t('app', 'Login'), 'url' => ['/user/security/login']];
       } else {
-          //if( Yii::$app->user->can('administrator') ) {
-            //$menuItems[] = ['label' => Yii::t('app', 'Funcionarios'), 'url' => ['/user/admin/index']];
-          //}
           $menuItems = [];
           $menuItems[] = '<li>'
               . Html::beginForm(['/user/security/logout'], 'post')
@@ -408,42 +236,6 @@ $notifys   = Notificacion::find()->count();
         'items' => $menuItems,
         ]);
       NavBar::end();
-    } else {
-      NavBar::begin([
-        'brandLabel'    => Html::img('@logo', ['title' => Yii::t('yii', 'Educación Salud Y Seguridad E & T'), 'width'=>'65','height'=>'45']),
-        'brandOptions'  => ['style' => 'left: 45% !Important'],
-        'brandUrl'      => Yii::$app->homeUrl,
-        'fixed'         => true,
-        'renderSidenav' => false,
-        'sidenavToggleButtonOptions' => [
-          'options' => [
-            'title' => 'Menu de opciones E & T',
-            'class' => 'sidenav-trigger btn btn-flat waves-effect white-text',
-            'style' => 'height: 100% !important;',
-          ]
-        ],
-        'wrapperOptions' => [
-          'class' => 'container blue-grey darken-2',
-          'style' => 'width: 100% !important; max-width: 100% !important;',
-        ],
-      ]);
-
-      $menuItems = [];
-      $menuItems[] = '<li>'
-          . Html::beginForm(['/user/security/logout'], 'post')
-          . Html::submitButton(
-              '<span class="left" style="vertical-align: middle; height: 64px; line-height: 64px; margin-right: 10px;">'.(Yii::$app->user->identity->username).'</span> <i class="material-icons left">exit_to_app</i>',
-              ['class' => 'btn btn-flat waves-light white-text', 'style' => 'height: initial !important;', 'title' => 'Logout']
-          )
-          . Html::endForm()
-          . '</li>';
-
-      echo Nav::widget([
-        'options' => ['class' => 'right'],
-        'items' => $menuItems,
-        ]);
-      NavBar::end();
-    }
     ?>
   </header>
   <?php } ?>
@@ -453,8 +245,8 @@ $notifys   = Notificacion::find()->count();
         <?php if (!Yii::$app->user->isGuest) { ?>
         <?= Breadcrumbs::widget([
             'containerOptions'   => ['class'=>'nav-wrapper blue-grey darken-2'],
-            'homeLink'           => ['url' => Url::to('@hostback/site/index', true), 'label' => 'Página Principal', 'title' => 'Ir al Inicio'],
-            'activeItemTemplate' => '<span class="breadcrumb active" style="text-decoration: underline;" title="Opción Actual"><i class="material-icons amber-text text-accent-3" style="float: none !important; vertical-align: middle;">arrow_forward</i>{link}</span>',
+            'homeLink'           => ['url' => Url::to('@hostback/site/index', true), 'label' => 'Home', 'title' => 'Go to home'],
+            'activeItemTemplate' => '<span class="breadcrumb active" style="text-decoration: underline;" title="Current page"><i class="material-icons amber-text text-accent-3" style="float: none !important; vertical-align: middle;">arrow_forward</i>{link}</span>',
             //'itemTemplate'       => '{link} <i class="material-icons amber-text text-accent-3">arrow_forward</i>',
 
             'links'              => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [],
@@ -483,14 +275,14 @@ if(!Yii::$app->user->isGuest)
       <?php if(!Yii::$app->user->can('punto_bioseguro')) { ?>
       <div class="row">
         <div class="col l6 s12">
-          <h5 class="white-text">Educación Salud Y Seguridad E & T</h5>
-          <p class="grey-text text-lighten-4" id="bloque-ayuda">Recuerde constantemente verificar la descarga de los certificados a través de la opción de auditoria ó <a class="waves-effect amber-text text-accent-3 tooltipped" data-position="right" data-delay="50" data-tooltip="<p style='text-align:justify;'>Ver Auditorias <span class='red-text text-darken-1'><b>E & T</b></span></p>" href="<?=Url::to('@hostback/auditoria/index', true) ?>">Aquí</a></p>
+          <h5 class="white-text">Movie Show Time Finder</h5>
+          <p class="grey-text text-lighten-4" id="bloque-ayuda">Always remember to check the generation of time schedules through the billboard option or <a class="waves-effect amber-text text-accent-3 tooltipped" data-position="right" data-delay="50" data-tooltip="<p style='text-align:justify;'>Ver Auditorias <span class='red-text text-darken-1'><b>E & T</b></span></p>" href="<?=Url::to('@hostback/moviebillboard/index', true) ?>">Here</a></p>
         </div>
         <div class="col l4 offset-l2 s12">
-            <h5 class="white-text">Accesos Directos</h5>
+            <h5 class="white-text">Shortcuts</h5>
             <ul>
-                <li><a class="waves-effect grey-text text-lighten-3 tooltipped" data-position="right" data-delay="50" data-tooltip="<p style='text-align:justify;'>Consulta Certificados <span class='red-text text-darken-1'><b>E & T</b></span></p>" href="<?=Url::to('@hostback/site/consulta', true) ?>"><i class="material-icons amber-text text-accent-3" style="vertical-align: middle;">spellcheck</i> Consulta Certificados</a></li>
-                <li><a class="waves-effect grey-text text-lighten-3 tooltipped" data-position="right" data-delay="50" data-tooltip="<p style='text-align:justify;'>Inscripción Cursos <span class='red-text text-darken-1'><b>E & T</b></span></p>" href="<?=Url::to('@hostback/site/inscripcion', true) ?>"><i class="material-icons amber-text text-accent-3" style="vertical-align: middle;">supervised_user_circle</i> Inscripción Cursos</a></li>
+                <li><a class="waves-effect grey-text text-lighten-3 tooltipped" data-position="right" data-delay="50" data-tooltip="<p style='text-align:justify;'>Consulta Certificados <span class='red-text text-darken-1'><b>E & T</b></span></p>" href="<?=Url::to('@hostback/movie/index', true) ?>"><i class="material-icons amber-text text-accent-3" style="vertical-align: middle;">spellcheck</i> Search Movies</a></li>
+                <li><a class="waves-effect grey-text text-lighten-3 tooltipped" data-position="right" data-delay="50" data-tooltip="<p style='text-align:justify;'>Inscripción Cursos <span class='red-text text-darken-1'><b>E & T</b></span></p>" href="<?=Url::to('@hostback/subscription/index', true) ?>"><i class="material-icons amber-text text-accent-3" style="vertical-align: middle;">supervised_user_circle</i> Search Subscriptions</a></li>
             </ul>
         </div>
       </div>
@@ -499,7 +291,7 @@ if(!Yii::$app->user->isGuest)
     <div class="footer-copyright">
       <div class="container" style="width:100% !important;">
       &copy; <?= date('Y') ?> Support by Daniel Gallo & dany338@gmail.com
-      <a class="grey-text text-lighten-4 right" href="https://www.educacionsaludyseguridad.com/"><?= Html::img('@logo', ['title' => 'Movie Show Time Finder', 'width'=>'25','height'=>'25']) ?></a>
+      <a class="grey-text text-lighten-4 right" href="https://www.historiaclinicaduo.com/movieshowtime/backend/web/"><?= Html::img('@logo', ['title' => 'Movie Show Time Finder', 'width'=>'25','height'=>'25']) ?></a>
       </div>
     </div>
   </footer>

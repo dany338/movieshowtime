@@ -7,3 +7,5 @@ Yii::setAlias('@components', dirname(dirname(__DIR__)) . '/components');
 Yii::setAlias('@api', dirname(dirname(__DIR__)) . '/api');
 Yii::setAlias('@logo', '/movieshowtime/backend/web/img/logo.png');
 Yii::setAlias('@uploads', '/movieshowtime/backend/web/uploads');
+Yii::setAlias('@hostback',  '/movieshowtime/backend/web');
+Yii::setAlias('@hostfront', '/movieshowtime/frontend/web');

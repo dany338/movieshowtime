@@ -16,18 +16,15 @@ use kartik\select2\Select2;
 use kartik\editable\Editable;
 use dektrium\user\models\User;
 use backend\models\Movie;
+use backend\models\Movietheater;
 
-$this->title = 'Movies';
+$this->title = 'Movie billboards';
 $this->params['breadcrumbs'][] = $this->title;
 
-$url_export          = Url::to(['export'], true);
-$url_subscriptions   = Url::to(['get-subscriptions'],true);
-$url_moviebillboards = Url::to(['get-moviebillboards'],true);
+$url    = Url::to('export');
 
 $script = <<< JS
-const url_export          = '$url_export';
-const url_subscriptions   = '$url_subscriptions';
-const url_moviebillboards = '$url_moviebillboards';
+const url               = '$url';
 
 const htmlLoader = () => {
   let html  = '<div id="loader" class="progress" style="background-color: #E57373 !important;">';
@@ -38,95 +35,11 @@ const htmlLoader = () => {
 
 jQuery('.tooltipped').tooltip({delay: 50, html: true});
 
-jQuery('#export-all-movies').on('click', function() {
+jQuery('#export-all-movie-theaters').on('click', function() {
   const year = jQuery('#export-date').val();
-  window.location.href = url_export + '?year=' + year;
+  const href = jQuery(this).data('href') + '?year=' + year;
+  window.location.href = href;
 });
-
-jQuery('#modal-subscriptions').modalm({
-  onOpenStart: function(modal, trigger) {
-    jQuery('#modal-subscriptions').removeAttr("tabindex");
-    const movie = jQuery(modal).data('movie');
-    console.log('open start modal', movie);
-    let html = htmlLoader();
-    jQuery('#table-subscriptions').html('<tr><td colspan="3">' + html + '</td></tr>');
-  }
-});
-
-jQuery('#modal-moviebillboards').modalm({
-  onOpenStart: function(modal, trigger) {
-    jQuery('#modal-moviebillboards').removeAttr("tabindex");
-    let html = htmlLoader();
-    jQuery('#table-moviebillboards').html('<tr><td colspan="3">' + html + '</td></tr>');
-  }
-});
-
-jQuery('.subscriptions').on('click', async function(e) {
-  e.preventDefault();
-  jQuery('.tooltipped').tooltip();
-  const movie = jQuery(this).data('movie');
-  await jQuery.ajax({
-    type: "POST",
-    url: url_subscriptions,
-    data: { movie: movie },
-    dataType: 'json',
-    success: function(data) {
-      var obj    = JSON.parse(JSON.stringify(data));
-      console.log(obj);
-      if(obj.exito == 1) {
-        let html = '';
-        for(var index = 0; index < obj.subscriptions.length; index++) {
-          const element = obj.subscriptions[index];
-          html += '<tr><td>' + element.user + '</td></tr>';
-          html += '<tr><td>' + element.created_at + '</td></tr>';
-          html += '<tr><td>' + element.notification + '</td></tr>';
-        }
-        jQuery('#table-subscriptions').html(html);
-      } else {
-        const html = '<tr><td colspan="3">No records</td></tr>';
-        jQuery('#table-subscriptions').html(html);
-      }
-    },
-    error: function (jqXHR, textStatus, errorThrown) {
-      toastr.error('Error loading the subscriptions !Please contact to administrator¡ ', 'ERROR', {closeButton: true, 'progressBar': true, preventDuplicates: true, positionClass: 'toast-bottom-right'});
-    }
-  });
-  e.stopPropagation();
-});
-
-jQuery('.moviebillboards').on('click', async function(e) {
-  e.preventDefault();
-  jQuery('.tooltipped').tooltip();
-  const movie = jQuery(this).data('movie');
-  await jQuery.ajax({
-    type: "POST",
-    url: url_moviebillboards,
-    data: { movie: movie },
-    dataType: 'json',
-    success: function(data) {
-      var obj    = JSON.parse(JSON.stringify(data));
-      console.log(obj);
-      if(obj.exito == 1) {
-        let html = '';
-        for(var index = 0; index < obj.moviebillboards.length; index++) {
-          const element = obj.moviebillboards[index];
-          html += '<tr><td>' + element.start_date + '</td></tr>';
-          html += '<tr><td>' + element.end_date + '</td></tr>';
-          html += '<tr><td>' + element.statusLabel + '</td></tr>';
-        }
-        jQuery('#table-moviebillboards').html(html);
-      } else {
-        const html = '<tr><td colspan="3">No records</td></tr>';
-        jQuery('#table-moviebillboards').html(html);
-      }
-    },
-    error: function (jqXHR, textStatus, errorThrown) {
-      toastr.error('Error loading the moviebillboards !Please contact to administrator¡ ', 'ERROR', {closeButton: true, 'progressBar': true, preventDuplicates: true, positionClass: 'toast-bottom-right'});
-    }
-  });
-  e.stopPropagation();
-});
-
 JS;
 $this->registerJs($script, View::POS_READY, 'init-list');
 echo Alert::widget([]);
@@ -137,72 +50,24 @@ for ($i=$date - 1; $i <= $date; $i++) {
 }
 ?>
 
-<!-- Modal subscriptions -->
-<div id="modal-subscriptions" class="modal modal-fixed-footer">
-  <div class="modal-content">
-    <h4>Subscriptions</h4>
-    <table class="responsive-table">
-      <thead>
-        <tr>
-            <th>User</th>
-            <th>Created at</th>
-            <th>Notification</th>
-        </tr>
-      </thead>
-      <tbody id="table-subscriptions">
-        <tr>
-          <td colspan="3">No records</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-  <div class="modal-footer">
-    <a href="javascript:void(0);" class="modal-close waves-effect waves-green btn-flat">Aceptar</a>
-  </div>
-</div>
-
-<!-- Modal moviebillboards -->
-<div id="modal-moviebillboards" class="modal modal-fixed-footer">
-  <div class="modal-content">
-    <h4>Movie billboards</h4>
-    <table class="responsive-table">
-      <thead>
-        <tr>
-            <th>Start Date</th>
-            <th>End Date</th>
-            <th>Status</th>
-        </tr>
-      </thead>
-      <tbody id="table-moviebillboards">
-        <tr>
-          <td colspan="3">No records</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-  <div class="modal-footer">
-    <a href="javascript:void(0);" class="modal-close waves-effect waves-green btn-flat">Aceptar</a>
-  </div>
-</div>
-
 <div class="movie-index">
   <h4 class="header"><?= Html::encode($this->title) ?></h4>
   <?php // echo $this->render('_search', ['model' => $searchModel]); ?>
   <div class="row">
     <div class="col s12 m3 l3">
-      <?= Html::a('EXPORT ALL THE MOVIES <i class="material-icons" style="vertical-align: middle;">cloud_download</i>', null, [
+      <?= Html::a('EXPORT ALL THE MOVIE BILLBOARDS <i class="material-icons" style="vertical-align: middle;">cloud_download</i>', null, [
         'type'          => 'btn btn-default',
-        'title'         => Yii::t('yii', 'Export all the movies'),
+        'title'         => Yii::t('yii', 'Export all the movie theaters'),
         'class'         => 'waves-effect waves-light btn green lighten-2 tooltipped',
         'data-position' => 'top',
         'data-delay'    => '50',
         'data-tooltip'  => 'Export data',
         'href'          => 'javascript:void(0);',
-        'id'            => 'export-all-movies',
+        'id'            => 'export-all-movie-theaters',
         'data' => [
-          'method' =>'post',
+          'method'=>'post',
           'params'=>['id'=>0],
-          'href' => 'http://localhost/movieshowtime/backend/web/movie/export'
+          'href'  => 'http://localhost/movieshowtime/backend/web/moviebillboard/export'
         ]
       ]); ?>
     </div>
@@ -242,8 +107,8 @@ $gridColumns = [
     'expandOneOnly' => true,
     'expandIcon'    => '<i class="material-icons">arrow_right</i>',
     'collapseIcon'  => '<i class="material-icons">arrow_drop_down</i>',
-    'expandTitle'   => 'Open Detail Movie',
-    'collapseTitle' => 'Close Detail Movie'
+    'expandTitle'   => 'Open Detail Movie Theater',
+    'collapseTitle' => 'Close Detail Movie Theater'
   ],
   [
     'class'         => '\kartik\grid\ActionColumn',
@@ -258,7 +123,7 @@ $gridColumns = [
                   'class' => 'btn-floating waves-effect cyan tooltipped',
                   'data-position' => 'top',
                   'data-delay' => '50',
-                  'data-tooltip' => '<p style="text-align:justify;">View movie:<br><span class="amber-text text-accent-3"><b>'.$model->id.'</b></span></p>'
+                  'data-tooltip' => '<p style="text-align:justify;">View movie theater:<br><span class="amber-text text-accent-3"><b>'.$model->id.'</b></span></p>'
         ]);
       },
       'update' => function ($url, $model) {
@@ -266,17 +131,17 @@ $gridColumns = [
                   'class' => 'btn-floating waves-effect cyan tooltipped',
                   'data-position' => 'top',
                   'data-delay' => '50',
-                  'data-tooltip' => '<p style="text-align:justify;">Update movie:<br><span class="amber-text text-accent-3"><b>'.$model->id.'</b></span></p>'
+                  'data-tooltip' => '<p style="text-align:justify;">Update movie theater:<br><span class="amber-text text-accent-3"><b>'.$model->id.'</b></span></p>'
         ]);
       },
     ],
     'urlCreator' => function ($action, $model, $key, $index) {
         switch ($action) {
           case 'view':
-            $url = Url::to('@hostback/movie/view?id='.$model->id, true);
+            $url = Url::to('@hostback/movietheater/view?id='.$model->id, true);
           break;
           case 'update':
-            $url = Url::to('@hostback/movie/update?id='.$model->id, true);
+            $url = Url::to('@hostback/movietheater/update?id='.$model->id, true);
           break;
       }
       return $url;
@@ -289,11 +154,11 @@ $gridColumns = [
     'vAlign'         => 'middle',
     'format'         => 'raw',
     'attribute'      => 'id',
-    'label'          => Yii::t('yii', '# Movie'),
+    'label'          => Yii::t('yii', '# Movie Billboard'),
     'noWrap'         => true,
     'contentOptions' => function ($model, $key, $index, $column) {
       $class = $model->getColorRow();
-      return ['width'=>'5%', 'style' => 'text-align: justify; white-space: normal !important; overflow-wrap: break-word; width: 5%; padding: 1rem; border-radius: 10px; border-top: 0.5px solid #ce8e7b; border-bottom: 0.5px solid #ce8e7b; box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23); position: relative; overflow: hidden; transition: 0.2s ease-in-out all;', 'class' => $class ];
+      return ['width'=>'5%', 'style' => 'text-align: justify; white-space: normal !important;', 'class' => $class ];
     },
     'width'          => '5%',
     'value'    => function($model, $key, $index, $widget) {
@@ -304,29 +169,96 @@ $gridColumns = [
   ],
   [
     'format'         => 'raw',
-    'attribute'      => 'name',
-    'label'          => Yii::t('yii', 'Name'),
+    'attribute'      => 'movietheater_id',
+    'label'          => Yii::t('yii', 'Movie Theater'),
     'noWrap'         => true,
     'contentOptions' => function ($model, $key, $index, $column) {
       $class = $model->getColorRow();
-      return ['width'=> '8%', 'style' => 'text-align: justify; white-space: normal !important;', 'class' => $class ];
+      return ['width'=>'8%', 'style' => 'text-align: justify; white-space: normal !important;', 'class' => $class ];
     },
     'width'          => '8%',
     'value'          => function($model, $key, $index, $widget) {
-      $linkEye = Html::a('<i class="material-icons">visibility</i> '.$model->name, null, [
-        'class'  => 'amber-text text-accent-4 waves-effect waves-light',
-        'target' => '_blank',
-        'href'   => $model->moviedb_image
-      ]);
-      return $linkEye;
+      return $model->movietheater->name;
     },
-    'filter' => true,
-    'filterInputOptions'=>['placeholder'=>'Search by name...', 'tab-index' => 3],
+    'filterType' => GridView::FILTER_SELECT2,
+    'filter'     => Movietheater::getMovietheaters(),
+    'filterWidgetOptions'=>[
+        'pluginOptions'=>['allowClear'=>true],
+    ],
+    'filterInputOptions'=>['placeholder'=>'Search by theater...'],
   ],
   [
     'format'         => 'raw',
-    'attribute'      =>'user_first_id',
-    'label'          => Yii::t('yii', 'User first subscription'),
+    'attribute'      => 'movie_id',
+    'label'          => Yii::t('yii', 'Movie'),
+    'noWrap'         => true,
+    'contentOptions' => function ($model, $key, $index, $column) {
+      $class = $model->getColorRow();
+      return ['width'=>'8%', 'style' => 'text-align: justify; white-space: normal !important;', 'class' => $class ];
+    },
+    'width'          => '8%',
+    'value'          => function($model, $key, $index, $widget) {
+      return $model->movie->name;
+    },
+    'filterType' => GridView::FILTER_SELECT2,
+    'filter'     => Movie::getMovies(),
+    'filterWidgetOptions'=>[
+        'pluginOptions'=>['allowClear'=>true],
+    ],
+    'filterInputOptions'=>['placeholder'=>'Search by movie...'],
+  ],
+  [
+    'format'         => 'raw',
+    'attribute'      => 'start_date',
+    'label'          => Yii::t('yii', 'Start date'),
+    'noWrap'         => true,
+    'contentOptions' => function ($model, $key, $index, $column) {
+      $class = $model->getColorRow();
+      return ['width'=> '15%', 'style' => 'text-align: justify; white-space: normal !important;', 'class' => $class ];
+    },
+    'width'          => '15%',
+    'value'          => function ($model, $key, $index, $widget) {
+        return date('d M, Y g:i A', $model->start_date);
+    },
+    'filterType' => GridView::FILTER_DATE,
+    'filter'     => true,
+    'filterWidgetOptions'=>[
+        'pluginOptions'=>[
+          'autoclose'=>true,
+          'format' => 'yyyy-mm-dd',
+          'todayHighlight' => true,
+        ],
+    ],
+    'filterInputOptions'=>['placeholder'=>'Search by Start date...', 'tab-index' => 6],
+  ],
+  [
+    'format'         => 'raw',
+    'attribute'      => 'end_date',
+    'label'          => Yii::t('yii', 'End date'),
+    'noWrap'         => true,
+    'contentOptions' => function ($model, $key, $index, $column) {
+      $class = $model->getColorRow();
+      return ['width'=> '15%', 'style' => 'text-align: justify; white-space: normal !important;', 'class' => $class ];
+    },
+    'width'          => '15%',
+    'value'          => function ($model, $key, $index, $widget) {
+        return date('d M, Y g:i A', $model->end_date);
+    },
+    'filterType' => GridView::FILTER_DATE,
+    'filter'     => true,
+    'filterWidgetOptions'=>[
+        'pluginOptions'=>[
+          'autoclose'=>true,
+          'format' => 'yyyy-mm-dd',
+          'todayHighlight' => true,
+        ],
+    ],
+    'filterInputOptions'=>['placeholder'=>'Search by End date...', 'tab-index' => 6],
+  ],
+  [
+    'format'         => 'raw',
+    'attribute'      =>'user_id',
+    'label'          => Yii::t('yii', 'User'),
     'noWrap'         => true,
     'contentOptions' => function ($model, $key, $index, $column) {
       $class = $model->getColorRow();
@@ -335,8 +267,8 @@ $gridColumns = [
     'width'          => '8%',
     'value'          => function($model, $key, $index, $widget) {
       $user_first = '<span class="red-text text-lighten-3">(no asignado)</span>';
-      if($model->user_first_id !== null) {
-        $user       = User::findOne($model->user_first_id);
+      if($model->user_id !== null) {
+        $user       = User::findOne($model->user_id);
         $user_first = $user->profile->name;
       }
       return $user_first;
@@ -451,7 +383,7 @@ $fullExportMenu = ExportMenu::widget([
 ]);
 ?>
 <?= GridView::widget([
-    'id'              => 'kv-grid-movies',
+    'id'              => 'kv-grid-moviebillboards',
     'options'         => ['style' => 'width:150%;'],
     'tableOptions'    => ['style' => 'width:150%;'],
     'dataProvider'    => $dataProvider,
@@ -516,14 +448,14 @@ $fullExportMenu = ExportMenu::widget([
     ],
     'exportConfig' => [
       GridView::HTML => [
-        'filename' => 'Movies-'.date('Y-m-d'),
-        'options'  => ['title' => 'Download File HTML - Web Movies'],
+        'filename' => 'Moviebillboards-'.date('Y-m-d'),
+        'options'  => ['title' => 'Download File HTML - Web Moviebillboards'],
         'icon'     => '',
         'label'    => '<i class="material-icons teal-text text-darken-1" style="vertical-align: middle;">description</i> HTML',
       ],
       GridView::CSV => [
-        'filename' => 'Movies-'.date('Y-m-d'),
-        'options'  => ['title' => 'Download File CSV - Excel Movies'],
+        'filename' => 'Moviebillboards-'.date('Y-m-d'),
+        'options'  => ['title' => 'Download File CSV - Excel Moviebillboards'],
         'icon'     => '',
         'label'    => '<i class="material-icons light-blue-text text-darken-1" style="vertical-align: middle;">file_copy</i> CSV',
         'config'   => [
@@ -532,8 +464,8 @@ $fullExportMenu = ExportMenu::widget([
         ],
       ],
       GridView::TEXT => [
-        'filename' => 'Movies-'.date('Y-m-d'),
-        'options'  => ['title' => 'Download File Texto-plano Movies'],
+        'filename' => 'Moviebillboards-'.date('Y-m-d'),
+        'options'  => ['title' => 'Download File Texto-plano Moviebillboards'],
         'icon'     => '',
         'label'    => '<i class="material-icons grey-text text-darken-1" style="vertical-align: middle;">file_copy</i> Text',
         'mime'     => 'text/plain',
@@ -543,33 +475,33 @@ $fullExportMenu = ExportMenu::widget([
         ]
       ],
       GridView::EXCEL => [
-        'filename' => 'Movies-'.date('Y-m-d'),
-        'options'  => ['title' => 'Download File EXCEL Movies'],
+        'filename' => 'Moviebillboards-'.date('Y-m-d'),
+        'options'  => ['title' => 'Download File EXCEL Moviebillboards'],
         'icon'     => '',
         'label'    => '<i class="material-icons green-text text-darken-1" style="vertical-align: middle;">cancel_presentation</i> Excel',
         'mime'     => 'application/vnd.ms-excel',
         'config'   => [
-          'worksheet' => 'Movies-'.date('Y-m-d'),
+          'worksheet' => 'Moviebillboards-'.date('Y-m-d'),
           'cssFile' => ''
         ]
       ],
       GridView::PDF => [
-        'filename' => 'Movies-'.date('Y-m-d'),
-        'options' => ['title' => 'Download File PDF Movies'],
+        'filename' => 'Moviebillboards-'.date('Y-m-d'),
+        'options' => ['title' => 'Download File PDF Moviebillboards'],
         'icon' => '',
         'label' => '<i class="material-icons red-text text-darken-1" style="vertical-align: middle;">picture_as_pdf</i> PDF',
         'mime' => 'application/pdf',
         'config' => [
           'options' => [
-            'title' => 'Movies register in the platform Movie Show Time Finder',
+            'title' => 'Moviebillboards register in the platform Movie Show Time Finder',
             'subject' => 'PDF export create by Movie Show Time Finder',
-            'keywords' => 'Movies, Movie Show Time Finder, pdf'
+            'keywords' => 'Moviebillboards, Movie Show Time Finder, pdf'
           ],
         ]
       ],
       GridView::JSON => [
-        'filename' => 'Movies-'.date('Y-m-d'),
-        'options' => ['title' => 'Download File JSON Movies'],
+        'filename' => 'Moviebillboards-'.date('Y-m-d'),
+        'options' => ['title' => 'Download File JSON Moviebillboards'],
         'icon' => '',
         'label' => '<i class="material-icons yellow-text text-darken-1" style="vertical-align: middle;">code</i> JSON',
         'mime' => 'application/json',

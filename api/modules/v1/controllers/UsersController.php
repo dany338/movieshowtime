@@ -20,6 +20,7 @@ use yii\filters\AccessControl;
 use yii\db\ActiveQuery;
 use backend\models\Movie;
 use backend\models\Subscription;
+use backend\models\Notification;
 use api\modules\v1\models\curl;
 
 class UsersController extends ActiveController
@@ -106,14 +107,9 @@ class UsersController extends ActiveController
         throw new \yii\web\HttpException(412, 'Field login is not defined!');
       }
 
-      if(!isset($requests['password'])) {
-        throw new \yii\web\HttpException(412, 'Field password is not defined!');
-      }
-
       $login    = !empty($requests['login']) ? trim($requests['login']) : null;
-      $password = !empty($requests['password']) ? trim($requests['password']) : null;
 
-      if(is_null($login) || is_null($password)) {
+      if(is_null($login)) {
         throw new \yii\web\HttpException(412, 'Fields they are empty!');
       }
 
@@ -128,14 +124,18 @@ class UsersController extends ActiveController
       }
 
       if($user) {
-        $hash = $user->password_hash;
-        if(!\Yii::$app->security->validatePassword($password, $hash)) {
+        $hash    = $user->password_hash;
+        $arremail= explode('@', $user->email);
+        if(!\Yii::$app->security->validatePassword($arremail[0], $hash)) {
           throw new \yii\web\NotFoundHttpException('Password incorrect!');
         }
 
         $roles = \Yii::$app->authManager->getRolesByUser($user->id);
         reset($roles);
         $role = current($roles);
+
+        $user->auth_key   = Yii::$app->security->generateRandomString();
+        $user->save(false);
 
         $response = \Yii::$app->response;
         \Yii::$app->response->statusCode = 200;
@@ -149,13 +149,16 @@ class UsersController extends ActiveController
           'code'     => 0,
           'status'   => \Yii::$app->response->statusCode,
           'data'     => [
-            'uid'                 => $user->id,
-            'username'            => $user->username,
-            'email'               => $user->email,
-            'fullname'            => $user->profile->name,
-            'picture'             => (!empty($user->profile->bio)) ? $user->profile->bio : 'https://www.historiaclinicaduo.com/movieshowtime/backend/web/img/default_avatar_male.jpg',
-            'accessToken'         => $user->auth_key, // en los otros servicios se manda el token asi: access-token=xxxx
-            'type'                => $role->name, //$user->profile->idTipo0->name//
+            'picture'  => (!empty($user->profile->picture)) ? $user->profile->picture : 'https://www.historiaclinicaduo.com/movieshowtime/backend/web/img/default_avatar_male.jpg',
+            'message'  => 'email is already registered',
+            'id'       => $user->id,
+            'username' => $user->username,
+            'email'    => $user->email,
+            'mobile'   => $user->mobile,
+            'token'    => $user->auth_key,
+            'location' => $user->profile->location,
+            'fullname' => $user->profile->name,
+            'age'      => $user->profile->age
           ]
         ];
       } else {
@@ -170,6 +173,18 @@ class UsersController extends ActiveController
     date_default_timezone_set('America/Bogota');
     if(Yii::$app->request->isPost) {
       $requests    = \Yii::$app->request->post();
+
+      if(!isset($requests['moviedb_id'])) {
+        throw new \yii\web\HttpException(412, 'Field moviedb_id is not defined!');
+      }
+
+      if(!isset($requests['name'])) {
+        throw new \yii\web\HttpException(412, 'Field name is not defined!');
+      }
+
+      if(!isset($requests['moviedb_image'])) {
+        throw new \yii\web\HttpException(412, 'Field moviedb_image is not defined!');
+      }
 
       if(!isset($requests['age'])) {
         throw new \yii\web\HttpException(412, 'Field age is not defined!');
@@ -191,29 +206,28 @@ class UsersController extends ActiveController
         throw new \yii\web\HttpException(412, 'Field location is not defined!');
       }
 
-      $data      = [];
+      $data        = [];
+      $description = '';
 
       $arremail  = explode('@',$requests['email']);
       $name      = utf8_encode($requests['fullname']);
       $age       = $requests['age'];
       $email     = $requests['email'];
-      $password  = $requests['password'];
       $location  = $requests['location'];
       $rolname   = 'subscriptor';
+
+      $moviedb_id   = $requests['moviedb_id'];
+      $moviedb_name = $requests['name'];
+      $moviedb_image= $requests['moviedb_image'];
 
       $user = User::find()->where(['email' => $email])->one();
 
       if( $user === null ) {
         $username  = $arremail[0];
-        $userCount = User::find()->where(['username' => $username])->count();
-
-        if( $userCount > 0 ) {
-          $username .= $userCount;
-        }
         $user = new User();
         $user->username      = $username;
         $user->email         = $email;
-        $user->password_hash = Yii::$app->security->generatePasswordHash($password, Yii::$app->getModule('user')->cost);
+        $user->password_hash = Yii::$app->security->generatePasswordHash($username, Yii::$app->getModule('user')->cost);
         $user->auth_key      = Yii::$app->security->generateRandomString();
         $user->confirmed_at  = time();
         $user->created_at    = time();
@@ -223,9 +237,9 @@ class UsersController extends ActiveController
         if($user->save(false)) {
 
           $manager = Yii::$app->authManager;
-          $assign  = $manager->getAssignment($rolname,$user->id);
+          $assign  = $manager->getAssignment($rolname, $user->id);
           if( $assign === null )
-            $manager->assign($manager->getItem($rolname),$user->id);
+            $manager->assign($manager->getItem($rolname), $user->id);
 
           $profile                 = $user->profile;
           $profile->user_id        = $user->id;
@@ -241,45 +255,76 @@ class UsersController extends ActiveController
 
           if($profile->save(false)) {
             $data     = [
+              'picture'  => (!empty($profile->picture)) ? $profile->picture : 'https://www.historiaclinicaduo.com/movieshowtime/backend/web/img/default_avatar_male.jpg',
+              'message'  => 'email is already registered',
               'id'       => $user->id,
               'username' => $user->username,
               'email'    => $user->email,
               'mobile'   => $user->mobile,
-              'auth_key' => $user->auth_key,
-              'picture'  => $profile->picture,
+              'token'    => $user->auth_key,
+              'location' => $profile->location,
+              'fullname' => $profile->name,
               'age'      => $profile->age
             ];
           }
         }
-        $response = \Yii::$app->response;
-        \Yii::$app->response->statusCode = 200;
-        $response->format = \yii\web\Response::FORMAT_JSON;
-        $response->getHeaders()->set('Access-Control-Allow-Origin','*');
-        $response->data   = [
-          'name'     => 'OK',
-          'message'  => $response->isSuccessful,
-          'code'     => 0,
-          'status'   => \Yii::$app->response->statusCode,
-          'data'     => $data
-        ];
-        return $data;
+        $description = 'Register new user subscriptor & send notification';
       } else {
         $data     = [
-          'message'  => 'email ya se encuentra registrado'
+          'message'  => 'email is already registered'
         ];
-        $response = \Yii::$app->response;
-        \Yii::$app->response->statusCode = 200;
-        $response->format = \yii\web\Response::FORMAT_JSON;
-        $response->getHeaders()->set('Access-Control-Allow-Origin','*');
-        $response->data   = [
-          'name'     => 'error',
-          'message'  => 'email ya se encuentra registrado',
-          'code'     => 0,
-          'status'   => \Yii::$app->response->statusCode,
-          'data'     => $data
-        ];
-        return $data;
+        $description = 'Existing user & send notification';
       }
+
+      $movie = Movie::find()->where(['moviedb_id' => $moviedb_id])->one();
+      if($movie === null) {
+        $movie = new Movie();
+        $movie->moviedb_id = $moviedb_id;
+        $movie->moviedb_image = $moviedb_image;
+        $movie->name = $moviedb_name;
+        $movie->status = 1;
+        $movie->user_first_id = $user->id;
+        $movie->created_at = date('Y-m-d H:i:s');
+      }
+      $movie->updated_at = date('Y-m-d H:i:s');
+      if($movie->save(false)) {
+        $subscription = Subscription::find()->where(['movie_id' => $movie->id, 'uid' => $user->id])->one();
+        if($subscription === null) {
+          $subscription = new Subscription();
+          $subscription->movie_id = $movie->id;
+          $subscription->uid = $user->id;
+          $subscription->notification = 0;
+          $subscription->created_at = date('Y-m-d H:i:s');
+        }
+        $subscription->updated_at = date('Y-m-d H:i:s');
+        if($subscription->save(false)) {
+          $mensaje = $user->mailer->sendSubscriptionMessage($user, $movie, $subscription);
+          if($mensaje) {
+            $subscription->notification = (int)$subscription->notification + 1;
+            $subscription->save(false);
+            $notification = new Notification();
+            $notification->subscription_id = $subscription->id;
+            $notification->uid             = $user->id;
+            $notification->description     = $description.' # '.$subscription->notification;
+            $notification->created_at      = date('Y-m-d H:i:s');
+            $notification->updated_at      = date('Y-m-d H:i:s');
+            $notification->save(false);
+          }
+        }
+      }
+
+      $response = \Yii::$app->response;
+      \Yii::$app->response->statusCode = 200;
+      $response->format = \yii\web\Response::FORMAT_JSON;
+      $response->getHeaders()->set('Access-Control-Allow-Origin','*');
+      $response->data   = [
+        'name'     => 'OK',
+        'message'  => $response->isSuccessful,
+        'code'     => 0,
+        'status'   => \Yii::$app->response->statusCode,
+        'data'     => $data
+      ];
+      return $data;
     } else {
       throw new \yii\web\HttpException(405);
     }
